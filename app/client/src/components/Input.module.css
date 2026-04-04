@@ -1,0 +1,82 @@
+/* src/components/Input.module.css */
+
+.inputGroup {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+/* Left icon styling */
+.inputIcon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #4a90a4;
+    font-size: 1.1rem;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+/* Right icon button (for password toggle) */
+.rightIconButton {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: #4a90a4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.rightIconButton:hover {
+    color: #357a8a;
+}
+
+.rightIconButton:focus {
+    outline: none;
+}
+
+/* Base input styling */
+.inputGroup input {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    transition: border-color 0.2s ease;
+}
+
+.inputGroup input:focus {
+    outline: none;
+    border-color: #4a90a4;
+}
+
+.inputGroup input::placeholder {
+    color: #888;
+}
+
+/* Padding adjustment when left icon is present */
+.inputGroup input.withLeftIcon {
+    padding-right: 45px;
+}
+
+/* Padding adjustment when right icon is present */
+.inputGroup input.withRightIcon {
+    padding-right: 45px;
+}
+
+/* When both icons are present */
+.inputGroup input.withLeftIcon.withRightIcon {
+    padding-right: 45px;
+}

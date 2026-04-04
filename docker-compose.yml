@@ -1,0 +1,54 @@
+# PostgreSQL + 单容器应用（8080：/api + 前端静态资源）
+# 首次启动前：复制 deploy/docker.env.example 为 deploy/docker.env 并修改密钥与密码
+# 初始化库：首次创建数据卷时会执行 app/server/baze 下 SQL（仅空库时）
+
+# 使用: copy deploy\docker.env.example deploy\docker.env 后执行 docker compose --env-file deploy\docker.env up --build
+
+services:
+  db:
+    image: postgres:16-alpine
+    env_file:
+      - deploy/docker.env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fertutor}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-fertutor}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./app/server/baze/baze.sql:/docker-entrypoint-initdb.d/01-baze.sql:ro
+      - ./app/server/baze/migration_admin.sql:/docker-entrypoint-initdb.d/02-migration_admin.sql:ro
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    env_file:
+      - deploy/docker.env
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 8080
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-fertutor}
+      DB_USER: ${POSTGRES_USER:-fertutor}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8080}
+      JWT_SECRET: ${JWT_SECRET:-change-me-jwt}
+      VERIFY_SECRET: ${VERIFY_SECRET:-change-me-verify}
+      RESET_SECRET: ${RESET_SECRET:-change-me-reset}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

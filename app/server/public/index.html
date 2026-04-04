@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Auth Test</title>
+</head>
+<body>
+
+<h1>REGISTER — STEP 1</h1>
+<form id="registerEmailForm">
+    <input type="email" id="email" placeholder="email" required /><br>
+    <input type="password" id="password" placeholder="password" required /><br>
+
+    <label>Terms and conditions?</label>
+    <input type="checkbox" id="termsAndConditions"/><br>
+
+    <button type="submit">Send verification email</button>
+</form>
+
+<hr>
+
+<script>
+    const BASE_URL = "http://localhost:8080/auth";
+    // 🔥 Ako je tvoj router mountan kao app.use('/auth', authRouter);
+
+    // 1) REGISTER / EMAIL
+    document.getElementById("registerEmailForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const payload = {
+            email: document.getElementById("email").value,
+            password: document.getElementById("password").value,
+            termsAndConditions: document.getElementById("termsAndConditions").checked
+        };
+
+        const res = await fetch(`${BASE_URL}/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        alert("REGISTER STEP 1 → " + JSON.stringify(data));
+    });
+
+
+    // 3) FINISH REGISTER
+    document.getElementById("finishForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const payload = {
+            email: document.getElementById("finish_email").value,
+            password: document.getElementById("finish_password").value,
+            passwordCheck: document.getElementById("finish_passwordCheck").value,
+            is_student: document.getElementById("is_student").checked,
+            name: "TEMP",
+            surname: "TEMP",
+            termsAndConditions: document.getElementById("terms").checked
+        };
+
+        const res = await fetch(`${BASE_URL}/finish-register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        alert("FINISH REGISTER → " + JSON.stringify(data));
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "fertutor",
+  "private": true,
+  "description": "Root scripts: build client + start server / tunnel",
+  "scripts": {
+    "install:all": "npm install --prefix app/server && npm install --prefix app/client",
+    "build": "npm run build --prefix app/client",
+    "start": "node app/server/server.js",
+    "start:prod": "npm run build && cross-env NODE_ENV=production node app/server/server.js",
+    "tunnel": "node scripts/start-tunnel.cjs"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
+  }
+}

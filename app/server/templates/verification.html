@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Potvrda Registracije | Fertutor.xyz</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 30px auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+        .header { text-align: center; padding-bottom: 20px; border-bottom: 1px solid #004d99; }
+        .header h1 { color: #004d99; margin: 0; font-size: 24px; }
+        .content { padding: 20px 0; line-height: 1.6; color: #333333; }
+        .button-container { text-align: center; margin: 25px 0; }
+        .button {
+            background-color: #007bff;
+            color: white !important;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .footer { text-align: center; font-size: 12px; color: #999999; padding-top: 20px; border-top: 1px solid #eeeeee; }
+        .important-note { color: #d9534f; font-weight: bold; margin-top: 15px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Fertutor.xyz</h1>
+    </div>
+    <div class="content">
+        <h2>Dobrodošli na Fertutor!</h2>
+
+        <p>Hvala Vam što ste se registrirali na našu platformu. Još samo jedan korak dijeli Vas od kreiranja kompletnog profila i pristupa mreži profesora.</p>
+
+        <p>Molimo Vas, kliknite na gumb ispod kako biste potvrdili svoju email adresu:</p>
+
+        <div class="button-container">
+            <a href="{{verificationLink}}" class="button">POTVRDI EMAIL ADRESU</a>
+        </div>
+
+        <p>Ako gumb ne radi, kopirajte i zalijepite link u svoj preglednik:</p>
+        <p style="word-break: break-all; font-size: 10px; color: #007bff;">{{verificationLink}}</p>
+
+        <p class="important-note">Iz sigurnosnih razloga, ovaj link za potvrdu ističe za 10 minuta. Ako istekne, morat ćete ponovno započeti registraciju.</p>
+    </div>
+    <div class="footer">
+        <p>Ovo je automatski poslan email. Molimo Vas, ne odgovarajte.</p>
+        <p>&copy; 2024 Fertutor.xyz</p>
+    </div>
+</div>
+</body>
+</html>

@@ -1,571 +1,1043 @@
-const express = require("express");
-const router = express.Router();
-const crypto = require("crypto");
-const pool = require("../config/db");
-const verifyToken = require("../middleware/verifyToken");
-const verifyTokenOptional = require("../middleware/verifyTokenOptional");
+import { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../api";
+import { Autocomplete, useLoadScript } from "@react-google-maps/api";
+import { AuthContext } from "../context/AuthContext";
+import styles from "./Calendar.module.css";
 
-// 生成唯一的 Jitsi 会议 URL 和密码
-const generateMeetingCredentials = (slotId) => {
-    const roomId = crypto.randomBytes(8).toString('hex');
-    const password = crypto.randomBytes(3).toString('hex'); // 6 位密码
-    const meetingUrl = `https://meet.jit.si/fertutor-${slotId}-${roomId}`;
-    return { meetingUrl, password };
-};
+export default function Calendar() {
+    const { user } = useContext(AuthContext);
+    const navigate = useNavigate();
+    const [slots, setSlots] = useState([]);
+    const [bookings, setBookings] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
+    const [interests, setInterests] = useState([]);
+    const [detailsOpen, setDetailsOpen] = useState(false);
+    const [slotDetails, setSlotDetails] = useState(null);
+    const [detailsLoading, setDetailsLoading] = useState(false);
+    const [bookingDetailsOpen, setBookingDetailsOpen] = useState(false);
+    const [bookingDetails, setBookingDetails] = useState(null);
+    const [bookingDetailsLoading, setBookingDetailsLoading] = useState(false);
+    const [noteDraft, setNoteDraft] = useState("");
+    const [noteSaving, setNoteSaving] = useState(false);
 
-const requireProfessor = async (userId) => {
-    const result = await pool.query(
-        "SELECT is_professor FROM users WHERE id = $1",
-        [userId]
-    );
-    return result.rows[0]?.is_professor === true;
-};
+    // 创建课程模态框状态
+    const [createLessonModalOpen, setCreateLessonModalOpen] = useState(false);
 
-const requireStudent = async (userId) => {
-    const result = await pool.query(
-        "SELECT is_professor FROM users WHERE id = $1",
-        [userId]
-    );
-    return result.rows[0]?.is_professor === false;
-};
+    const [form, setForm] = useState({
+        date: "",
+        start: "",
+        end: "",
+        capacity: 2,
+        teaching_type: "线上",
+        lesson_type: "一对一",
+        interest_id: "",
+        price: "",
+        location: ""
+    });
 
-// 创建可用时间段（教授）
-router.post("/slots", verifyToken, async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const {
-            start_time,
-            end_time,
-            capacity,
-            teaching_type,
-            price,
-            location,
-            lesson_type,
-            interest_id
-        } = req.body;
+    const libraries = ["places"];
 
-        if (!lesson_type || !['一对一', '集体课'].includes(lesson_type)) {
-            return res.status(400).json({ message: "无效的课程类型。" });
+    const { isLoaded } = useLoadScript({
+        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+        libraries
+    });
+
+    const [autocomplete, setAutocomplete] = useState(null);
+
+    const onLoadAutocomplete = (auto) => {
+        setAutocomplete(auto);
+    };
+
+    const onPlaceChanged = () => {
+        if (!autocomplete) return;
+        const place = autocomplete.getPlace();
+        if (place.formatted_address) {
+            setForm(prev => ({
+                ...prev,
+                location: place.formatted_address
+            }));
         }
+    };
 
-        let finalCapacity = 1;
+    const [currentMonth, setCurrentMonth] = useState(() => {
+        const now = new Date();
+        return new Date(now.getFullYear(), now.getMonth(), 1);
+    });
+    const [hoveredDay, setHoveredDay] = useState(null);
 
-        if (lesson_type === "一对一") {
-            finalCapacity = 1;
+    const monthNames = [
+        "一月", "二月", "三月", "四月", "五月", "六月",
+        "七月", "八月", "九月", "十月", "十一月", "十二月"
+    ];
+
+    const dayNames = ["一", "二", "三", "四", "五", "六", "日"];
+
+    useEffect(() => {
+        if (!user) return;
+
+        const loadInterests = async () => {
+            try {
+                const res = await api.get("/calendar/my-interests");
+                setInterests(res.data.interests || []);
+            } catch (err) {
+                console.error("获取科目时出错:", err);
+            }
+        };
+
+        loadInterests();
+
+        if (user.is_professor) {
+            loadSlots();
         } else {
-            if (!interest_id) {
-                return res.status(400).json({ message: "集体课必须选择科目。" });
-            }
-
-            finalCapacity = Number(capacity);
-            if (!Number.isInteger(finalCapacity) || finalCapacity < 2) {
-                return res.status(400).json({
-                    message: "集体课容量必须 ≥ 2。"
-                });
-            }
-
-            // 检查教师是否拥有该科目
-            const interestCheck = await pool.query(
-                `SELECT 1
-         FROM user_interests
-         WHERE user_id = $1 AND interest_id = $2`,
-                [userId, interest_id]
-            );
-
-            if (interestCheck.rows.length === 0) {
-                return res.status(403).json({
-                    message: "您无权教授所选科目。"
-                });
-            }
+            loadBookings();
         }
+    }, [user]);
 
-        // 获取教师档案中的授课类型
-        const profResult = await pool.query(
-            "SELECT teaching_type FROM professors WHERE user_id = $1",
-            [userId]
-        );
+    const showSuccess = (msg) => {
+        setSuccess(msg);
+        setTimeout(() => setSuccess(""), 3000);
+    };
 
-        const profileTeachingType = profResult.rows[0]?.teaching_type;
-
-        if (!profileTeachingType) {
-            return res.status(400).json({ message: "教师档案未定义授课类型。" });
+    const loadSlots = async () => {
+        try {
+            const res = await api.get("/calendar/my-slots");
+            setSlots(res.data.slots || []);
+        } catch (err) {
+            setError(err.response?.data?.message || "获取时间段时出错。");
+        } finally {
+            setLoading(false);
         }
+    };
 
-        // 检查所选时间段是否允许
+    const loadBookings = async () => {
+        try {
+            const res = await api.get("/calendar/my-bookings");
+            setBookings(res.data.bookings || []);
+        } catch (err) {
+            setError(err.response?.data?.message || "获取预订时出错。");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCreate = async (e) => {
+        e.preventDefault();
+        setError("");
+
         if (
-            (profileTeachingType === "Uživo" && teaching_type !== "Uživo") ||
-            (profileTeachingType === "Online" && teaching_type !== "Online")
+            !form.date ||
+            !form.start ||
+            !form.end ||
+            !form.teaching_type ||
+            form.price === ""
         ) {
-            return res.status(403).json({
-                message: `无法创建 ${teaching_type} 类型的时间段。您的档案只允许 ${profileTeachingType}。`
-            });
+            setError("请填写所有必填字段。");
+            return;
         }
 
-        if (!start_time || !end_time || !teaching_type || price == null) {
-            return res.status(400).json({ message: "缺少必要的时间段数据。" });
+        if (form.teaching_type === "线下" && !form.location) {
+            setError("线下课程必须提供地点。");
+            return;
         }
 
-        if (teaching_type === "Uživo" && !location) {
-            return res.status(400).json({ message: "线下课程必须提供地点。" });
+        if (form.lesson_type === "集体课" && !form.interest_id) {
+            setError("集体课必须选择科目。");
+            return;
         }
 
-        const isProfessor = await requireProfessor(userId);
-        if (!isProfessor) {
-            return res.status(403).json({ message: "只有教授可以创建时间段。" });
-        }
+        const start_time = `${form.date}T${form.start}`;
+        const end_time = `${form.date}T${form.end}`;
 
-        const overlap = await pool.query(
-            `SELECT 1
-             FROM professor_slots
-             WHERE professor_id = $1
-               AND start_time < $3
-               AND end_time > $2
-             LIMIT 1`,
-            [userId, start_time, end_time]
-        );
-
-        if (overlap.rows.length > 0) {
-            return res.status(409).json({ message: "时间段与已有时间段重叠。" });
-        }
-
-        const result = await pool.query(
-            `INSERT INTO professor_slots
-             (professor_id, start_time, end_time, capacity, teaching_type, price, location, lesson_type, interest_id)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-                 RETURNING *`,
-            [
-                userId,
+        try {
+            await api.post("/calendar/slots", {
                 start_time,
                 end_time,
-                finalCapacity,
-                teaching_type,
-                price,
-                teaching_type === "Uživo" ? location : null,
-                lesson_type,
-                lesson_type === "集体课" ? interest_id : null
-            ]
-        );
+                teaching_type: form.teaching_type,
+                lesson_type: form.lesson_type,
+                capacity: form.lesson_type === "一对一" ? 1 : Number(form.capacity),
+                interest_id: form.lesson_type === "集体课" ? Number(form.interest_id) : null,
+                price: Number(form.price),
+                location: form.teaching_type === "线下" ? form.location : null
+            });
 
-        res.status(201).json({ slot: result.rows[0] });
-    } catch (err) {
-        console.error("创建时间段错误:", err);
-        res.status(500).json({ message: "创建时间段时出错。" });
-    }
-});
+            // 重置表单
+            setForm({
+                date: "",
+                start: "",
+                end: "",
+                capacity: 2,
+                teaching_type: "线上",
+                lesson_type: "一对一",
+                interest_id: "",
+                price: "",
+                location: ""
+            });
 
-// 获取教授的公开时间段（仅可用）
-router.get("/slots/:professorId", verifyTokenOptional, async (req, res) => {
-    try {
-        const { professorId } = req.params;
-        const includeBooked = req.query.includeBooked === "true";
-
-        const userId = req.user?.id || null;
-
-        const result = await pool.query(
-            `
-            SELECT
-                s.id,
-                s.start_time,
-                s.end_time,
-                s.capacity,
-                s.teaching_type,
-                s.lesson_type,
-                s.price,
-                s.location,
-                i.name AS interest_name,
-                COUNT(b.id) AS booked_count,
-                (b_me.id IS NOT NULL) AS is_booked_by_me
-            FROM professor_slots s
-            LEFT JOIN professor_slot_bookings b ON b.slot_id = s.id
-            LEFT JOIN professor_slot_bookings b_me
-                ON b_me.slot_id = s.id
-               AND b_me.student_id = $2
-            LEFT JOIN interests i ON i.id = s.interest_id
-            WHERE s.professor_id = $1
-              AND s.start_time >= NOW()
-            GROUP BY s.id, i.name, b_me.id
-            ${includeBooked ? "" : "HAVING COUNT(b.id) < s.capacity"}
-            ORDER BY s.start_time
-            `,
-            [professorId, userId]
-        );
-
-        res.json({ slots: result.rows });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "获取时间段时出错。" });
-    }
-});
-
-// 获取当前教授的时间段（包含预订信息）
-router.get("/my-slots", verifyToken, async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const isProfessor = await requireProfessor(userId);
-        if (!isProfessor) {
-            return res.status(403).json({ message: "只有教授可以查看时间段。" });
+            showSuccess("时间段添加成功！✓");
+            setCreateLessonModalOpen(false);
+            loadSlots();
+        } catch (err) {
+            setError(err.response?.data?.message || "保存时间段时出错。");
         }
+    };
 
-        const result = await pool.query(
-            `SELECT
-                 s.id,
-                 s.start_time,
-                 s.end_time,
-                 s.capacity,
-                 s.teaching_type,
-                 s.lesson_type,
-                 s.price,
-                 s.location,
-                 s.meeting_url,
-                 s.meeting_password,
-                 i.name AS interest_name,
-                 COUNT(b.id) AS booked_count
-             FROM professor_slots s
-                      LEFT JOIN professor_slot_bookings b ON b.slot_id = s.id
-                      LEFT JOIN interests i ON i.id = s.interest_id
-             WHERE s.professor_id = $1
-               AND s.end_time > NOW()
-             GROUP BY s.id, i.name
-             ORDER BY s.start_time`,
-            [userId]
-        );
-
-        res.json({ slots: result.rows });
-    } catch (err) {
-        console.error("获取我的时间段错误:", err);
-        res.status(500).json({ message: "获取时间段时出错。" });
-    }
-});
-
-// 获取时间段详情及学生和备注（教授）
-router.get("/slots/:slotId/details", verifyToken, async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const { slotId } = req.params;
-
-        const isProfessor = await requireProfessor(userId);
-        if (!isProfessor) {
-            return res.status(403).json({ message: "只有教授可以访问。" });
+    const handleDelete = async (slotId) => {
+        try {
+            await api.delete(`/calendar/slots/${slotId}`);
+            showSuccess("时间段已删除。");
+            loadSlots();
+        } catch (err) {
+            setError(err.response?.data?.message || "删除时间段时出错。");
         }
+    };
 
-        // 检查时间段是否属于该教授
-        const slotResult = await pool.query(
-            `SELECT
-                 s.id,
-                 s.start_time,
-                 s.end_time,
-                 s.capacity,
-                 s.teaching_type,
-                 s.lesson_type,
-                 s.price,
-                 s.location,
-                 i.name AS interest_name
-             FROM professor_slots s
-             LEFT JOIN interests i ON i.id = s.interest_id
-             WHERE s.id = $1 AND s.professor_id = $2`,
-            [slotId, userId]
-        );
-
-        if (slotResult.rows.length === 0) {
-            return res.status(404).json({ message: "未找到该时间段。" });
+    const handleCancel = async (slotId) => {
+        try {
+            await api.delete(`/calendar/book/${slotId}`);
+            showSuccess("时间段已成功取消。");
+            await loadBookings();
+        } catch (err) {
+            setError(err.response?.data?.message || "取消时间段时出错。");
         }
+    };
 
-        // 学生 + 备注
-        const studentsResult = await pool.query(
-            `SELECT
-                 u.id,
-                 u.name,
-                 u.surname,
-                 b.note,
-                 b.booked_at
-             FROM professor_slot_bookings b
-             JOIN users u ON u.id = b.student_id
-             WHERE b.slot_id = $1
-             ORDER BY b.booked_at`,
-            [slotId]
-        );
+    const openDetails = async (slotId) => {
+        setDetailsLoading(true);
+        setDetailsOpen(true);
 
-        res.json({
-            slot: slotResult.rows[0],
-            students: studentsResult.rows
-        });
-    } catch (err) {
-        console.error("获取时间段详情错误:", err);
-        res.status(500).json({ message: "获取时间段详情时出错。" });
-    }
-});
-
-// 删除可用时间段（教授）
-router.delete("/slots/:slotId", verifyToken, async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const { slotId } = req.params;
-
-        const isProfessor = await requireProfessor(userId);
-        if (!isProfessor) {
-            return res.status(403).json({ message: "只有教授可以删除时间段。" });
+        try {
+            const res = await api.get(`/calendar/slots/${slotId}/details`);
+            setSlotDetails(res.data);
+        } catch (err) {
+            setError("获取时间段详情时出错。");
+            setDetailsOpen(false);
+        } finally {
+            setDetailsLoading(false);
         }
+    };
 
-        const result = await pool.query(
-            `DELETE FROM professor_slots
-             WHERE id = $1
-               AND professor_id = $2
-               AND id NOT IN (
-                 SELECT slot_id FROM professor_slot_bookings
-               )`,
-            [slotId, userId]
-        );
+    const openBookingDetails = async (bookingId) => {
+        setBookingDetailsLoading(true);
+        setBookingDetailsOpen(true);
 
-        if (result.rowCount === 0) {
-            return res.status(400).json({ message: "无法删除该时间段。" });
+        try {
+            const res = await api.get(`/calendar/bookings/${bookingId}/details`);
+            setBookingDetails(res.data.booking);
+            setNoteDraft(res.data.booking.note || "");
+        } catch (err) {
+            setError("获取预订详情时出错。");
+            setBookingDetailsOpen(false);
+        } finally {
+            setBookingDetailsLoading(false);
         }
+    };
 
-        res.json({ message: "时间段已删除。" });
-    } catch (err) {
-        console.error("删除时间段错误:", err);
-        res.status(500).json({ message: "删除时间段时出错。" });
-    }
-});
+    const saveNote = async () => {
+        if (!bookingDetails) return;
 
-// 预订时间段（学生）
-router.post("/book/:slotId", verifyToken, async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const { slotId } = req.params;
-        const { note, interest_id } = req.body;
-
-        const isStudent = await requireStudent(userId);
-        if (!isStudent) {
-            return res.status(403).json({ message: "只有学生可以预订时间段。" });
-        }
-
-        const slotResult = await pool.query(
-            `SELECT s.capacity, COUNT(b.id) AS booked_count, s.lesson_type, s.interest_id AS slot_interest_id,
-                    s.teaching_type, s.meeting_url
-             FROM professor_slots s
-             LEFT JOIN professor_slot_bookings b ON b.slot_id = s.id
-             WHERE s.id = $1
-             GROUP BY s.id`,
-            [slotId]
-        );
-
-        if (slotResult.rows.length === 0) {
-            return res.status(404).json({ message: "未找到该时间段。" });
-        }
-
-        const { capacity, booked_count, lesson_type, slot_interest_id, teaching_type, meeting_url } = slotResult.rows[0];
-        if (Number(booked_count) >= Number(capacity)) {
-            return res.status(409).json({ message: "时间段已满。" });
-        }
-
-        // 对于集体课，学生不选择科目
-        const finalInterestId = lesson_type === "集体课" ? slot_interest_id : interest_id;
-
-        if (!finalInterestId) {
-            return res.status(400).json({ message: "科目为必填项。" });
-        }
-
-        // 为在线课程生成 Jitsi 会议 URL（仅在首次预订时）
-        let finalMeetingUrl = meeting_url;
-        let finalMeetingPassword = null;
-        if (teaching_type === "Online" && !meeting_url) {
-            const credentials = generateMeetingCredentials(slotId);
-            finalMeetingUrl = credentials.meetingUrl;
-            finalMeetingPassword = credentials.password;
-
-            await pool.query(
-                `UPDATE professor_slots SET meeting_url = $1, meeting_password = $2 WHERE id = $3`,
-                [finalMeetingUrl, finalMeetingPassword, slotId]
+        setNoteSaving(true);
+        try {
+            const res = await api.patch(
+                `/calendar/bookings/${bookingDetails.id}/note`,
+                { note: noteDraft }
             );
+
+            setBookingDetails(prev => ({
+                ...prev,
+                note: res.data.note
+            }));
+
+            showSuccess("备注已保存 ✓");
+        } catch (err) {
+            setError("保存备注时出错。");
+        } finally {
+            setNoteSaving(false);
         }
+    };
 
-        await pool.query(
-            `INSERT INTO professor_slot_bookings (slot_id, student_id, note, interest_id)
-             VALUES ($1, $2, $3, $4)
-                 ON CONFLICT DO NOTHING`,
-            [slotId, userId, note || null, finalInterestId]
-        );
-
-        res.json({
-            message: "时间段已预订。",
-            meeting_url: finalMeetingUrl,
-            meeting_password: finalMeetingPassword
+    const formatTime = (value) => {
+        const date = new Date(value);
+        return date.toLocaleTimeString("zh-CN", {
+            hour: "2-digit",
+            minute: "2-digit"
         });
-    } catch (err) {
-        console.error("预订时间段错误:", err);
-        res.status(500).json({ message: "预订时间段时出错。" });
-    }
-});
+    };
 
-// 取消预订（学生）
-router.delete("/book/:slotId", verifyToken, async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const { slotId } = req.params;
+    const formatFullDate = (value) => {
+        const date = new Date(value);
+        return date.toLocaleDateString("zh-CN", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        });
+    };
 
-        const isStudent = await requireStudent(userId);
-        if (!isStudent) {
-            return res.status(403).json({ message: "只有学生可以取消时间段。" });
+    const formatShortDate = (value) => {
+        const date = new Date(value);
+        return date.toLocaleDateString("zh-CN", {
+            day: "numeric",
+            month: "short"
+        });
+    };
+
+    const daysInMonth = (date) => {
+        return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+    };
+
+    const startWeekday = (date) => {
+        const day = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+        return day === 0 ? 6 : day - 1;
+    };
+
+    const buildCalendar = () => {
+        const totalDays = daysInMonth(currentMonth);
+        const offset = startWeekday(currentMonth);
+        const days = [];
+
+        for (let i = 0; i < offset; i += 1) {
+            days.push(null);
         }
 
-        const result = await pool.query(
-            `DELETE FROM professor_slot_bookings
-             WHERE slot_id = $1 AND student_id = $2
-             RETURNING id`,
-            [slotId, userId]
+        for (let d = 1; d <= totalDays; d += 1) {
+            days.push(d);
+        }
+
+        return days;
+    };
+
+    const dateKey = (date) => {
+        const d = new Date(date);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${y}-${m}-${day}`;
+    };
+
+    const isToday = (day) => {
+        if (!day) return false;
+        const today = new Date();
+        return (
+            today.getDate() === day &&
+            today.getMonth() === currentMonth.getMonth() &&
+            today.getFullYear() === currentMonth.getFullYear()
         );
+    };
 
-        if (result.rows.length === 0) {
-            return res.status(400).json({ message: "无法取消该时间段。" });
+    const isPast = (day) => {
+        if (!day) return false;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const checkDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+        return checkDate < today;
+    };
+
+    const slotCountByDay = slots.reduce((acc, slot) => {
+        const key = dateKey(slot.start_time);
+        acc[key] = acc[key] || { total: 0, booked: 0, slots: [] };
+        acc[key].total += 1;
+        acc[key].booked += Number(slot.booked_count || 0);
+        acc[key].slots.push(slot);
+        return acc;
+    }, {});
+
+    const bookingCountByDay = bookings.reduce((acc, booking) => {
+        const key = dateKey(booking.start_time);
+        acc[key] = acc[key] || [];
+        acc[key].push(booking);
+        return acc;
+    }, {});
+
+    const selectedDayBookings = form.date
+        ? (bookingCountByDay[form.date] || [])
+        : bookings;
+
+    const selectedDaySlots = form.date
+        ? slots.filter(s => dateKey(s.start_time) === form.date)
+        : slots;
+
+    const handleDaySelect = (day) => {
+        if (!day) return;
+        const year = currentMonth.getFullYear();
+        const month = String(currentMonth.getMonth() + 1).padStart(2, "0");
+        const date = String(day).padStart(2, "0");
+        const newDate = `${year}-${month}-${date}`;
+
+        if (form.date === newDate) {
+            setForm(prev => ({ ...prev, date: "" }));
+        } else {
+            setForm(prev => ({ ...prev, date: newDate }));
         }
+    };
 
-        res.json({ message: "时间段已取消。" });
-    } catch (err) {
-        console.error("取消预订错误:", err);
-        res.status(500).json({ message: "取消时间段时出错。" });
-    }
-});
-
-// 获取当前学生的所有预订
-router.get("/my-bookings", verifyToken, async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const isStudent = await requireStudent(userId);
-        if (!isStudent) {
-            return res.status(403).json({ message: "只有学生可以查看预订。" });
-        }
-
-        const result = await pool.query(
-            `SELECT
-                 b.id,
-                 s.id AS slot_id,
-                 s.start_time,
-                 s.end_time,
-                 s.teaching_type,
-                 s.lesson_type,
-                 s.price,
-                 s.location,
-                 s.meeting_url,
-                 s.meeting_password,
-                 s.professor_id,
-                 u.name AS professor_name,
-                 u.surname AS professor_surname,
-                 i.id AS interest_id,
-                 i.name AS interest_name
-             FROM professor_slot_bookings b
-                      JOIN professor_slots s ON s.id = b.slot_id
-                      JOIN users u ON u.id = s.professor_id
-                      JOIN interests i ON i.id = b.interest_id
-             WHERE b.student_id = $1
-             ORDER BY s.start_time`,
-            [userId]
+    const isSelectedDay = (day) => {
+        if (!day || !form.date) return false;
+        const [y, m, d] = form.date.split("-");
+        return (
+            Number(y) === currentMonth.getFullYear() &&
+            Number(m) === currentMonth.getMonth() + 1 &&
+            Number(d) === day
         );
+    };
 
-        res.json({ bookings: result.rows });
-    } catch (err) {
-        console.error("获取预订错误:", err);
-        res.status(500).json({ message: "获取预订时出错。" });
-    }
-});
+    const getHoveredDayKey = () => {
+        if (!hoveredDay) return null;
+        return `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}-${String(hoveredDay).padStart(2, "0")}`;
+    };
 
-// 获取预订详情（学生）
-router.get("/bookings/:bookingId/details", verifyToken, async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const { bookingId } = req.params;
+    const hasBookingsOnDay = (key) => bookingCountByDay[key] && bookingCountByDay[key].length > 0;
+    const hasSlotsOnDay = (key) => slotCountByDay[key] && slotCountByDay[key].total > 0;
 
-        const isStudent = await requireStudent(userId);
-        if (!isStudent) {
-            return res.status(403).json({ message: "只有学生可以访问。" });
-        }
-
-        const result = await pool.query(
-            `SELECT
-                 b.id,
-                 b.note,
-                 b.booked_at,
-                 s.start_time,
-                 s.end_time,
-                 s.teaching_type,
-                 s.lesson_type,
-                 s.price,
-                 s.location,
-                 i.name AS interest_name,
-                 u.name AS professor_name,
-                 u.surname AS professor_surname
-             FROM professor_slot_bookings b
-             JOIN professor_slots s ON s.id = b.slot_id
-             JOIN users u ON u.id = s.professor_id
-             JOIN interests i ON i.id = b.interest_id
-             WHERE b.id = $1 AND b.student_id = $2`,
-            [bookingId, userId]
+    if (!user) {
+        return (
+            <div className={styles.emptyState}>
+                <div className={styles.emptyIcon}>🔐</div>
+                <h2>需要登录</h2>
+                <p>请登录以查看和管理课程时间。</p>
+            </div>
         );
-
-        if (result.rows.length === 0) {
-            return res.status(404).json({ message: "未找到该预订。" });
-        }
-
-        res.json({ booking: result.rows[0] });
-    } catch (err) {
-        console.error("获取预订详情错误:", err);
-        res.status(500).json({ message: "获取预订详情时出错。" });
     }
-});
 
-// 获取当前用户（教授或学生）的科目列表
-router.get("/my-interests", verifyToken, async (req, res) => {
-    try {
-        const userId = req.user.id;
+    const hoveredKey = getHoveredDayKey();
+    const hoveredData = user?.is_professor
+        ? (hoveredKey && slotCountByDay[hoveredKey])
+        : (hoveredKey && bookingCountByDay[hoveredKey]);
 
-        const result = await pool.query(
-            `SELECT i.id, i.name
-             FROM user_interests ui
-             JOIN interests i ON i.id = ui.interest_id
-             WHERE ui.user_id = $1
-             ORDER BY i.name`,
-            [userId]
-        );
+    const isOngoing = (start, end) => {
+        const now = new Date();
+        const startTime = new Date(start);
+        const endTime = new Date(end);
+        const tenMinutesBefore = new Date(startTime.getTime() - 10 * 60 * 1000);
+        return now >= tenMinutesBefore && now <= endTime;
+    };
 
-        res.json({ interests: result.rows });
-    } catch (err) {
-        console.error("获取用户科目错误:", err);
-        res.status(500).json({ message: "获取科目时出错。" });
-    }
-});
+    const isPastLesson = (end) => {
+        const now = new Date();
+        return now > new Date(end);
+    };
 
-// 更新预订备注（学生）
-router.patch("/bookings/:bookingId/note", verifyToken, async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const { bookingId } = req.params;
-        const { note } = req.body;
+    return (
+        <div className={styles.page}>
+            <header className={styles.pageHeaderCompact}>
+                <div className={styles.headerContent}>
+                    <h1>
+                        {user?.is_professor ? "📅 我的日历" : "📋 我的课程"}
+                    </h1>
+                </div>
+            </header>
 
-        const isStudent = await requireStudent(userId);
-        if (!isStudent) {
-            return res.status(403).json({ message: "只有学生可以编辑备注。" });
-        }
+            {success && (
+                <div className={styles.successBanner}>
+                    {success}
+                </div>
+            )}
 
-        if (note && note.length > 500) {
-            return res.status(400).json({ message: "备注过长。" });
-        }
+            {error && (
+                <div className={styles.errorBanner}>
+                    ⚠️ {error}
+                    <button onClick={() => setError("")} className={styles.dismissBtn}>×</button>
+                </div>
+            )}
 
-        const result = await pool.query(
-            `UPDATE professor_slot_bookings
-             SET note = $1
-             WHERE id = $2 AND student_id = $3
-             RETURNING note`,
-            [note || null, bookingId, userId]
-        );
+            <div className={user?.is_professor ? styles.mainContentProfessor : styles.mainContent}>
+                <div className={styles.calendarCard}>
+                    <div className={styles.calendarHeader}>
+                        <button
+                            className={styles.navBtn}
+                            onClick={() =>
+                                setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))
+                            }
+                            aria-label="上个月"
+                        >
+                            ←
+                        </button>
+                        <div className={styles.monthLabel}>
+                            {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+                        </div>
+                        <button
+                            className={styles.navBtn}
+                            onClick={() =>
+                                setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))
+                            }
+                            aria-label="下个月"
+                        >
+                            →
+                        </button>
+                    </div>
 
-        if (result.rows.length === 0) {
-            return res.status(404).json({ message: "未找到该预订。" });
-        }
+                    <div className={styles.weekdays}>
+                        {dayNames.map(day => (
+                            <span key={day}>{day}</span>
+                        ))}
+                    </div>
 
-        res.json({ note: result.rows[0].note });
-    } catch (err) {
-        console.error("更新备注错误:", err);
-        res.status(500).json({ message: "保存备注时出错。" });
-    }
-});
+                    <div className={styles.calendarGrid}>
+                        {buildCalendar().map((day, idx) => {
+                            const key = day
+                                ? `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+                                : null;
 
-module.exports = router;
+                            const hasSlots = key && hasSlotsOnDay(key);
+                            const hasBooking = key && hasBookingsOnDay(key);
+                            const dayIsPast = isPast(day);
+                            const dayIsToday = isToday(day);
+
+                            const dayData = user?.is_professor
+                                ? (key && slotCountByDay[key])
+                                : (key && bookingCountByDay[key]);
+                            const showTooltip = hoveredDay === day && dayData;
+
+                            let dayClass = styles.day;
+                            if (isSelectedDay(day)) dayClass += ` ${styles.selectedDay}`;
+                            if (dayIsToday) dayClass += ` ${styles.today}`;
+                            if (dayIsPast) dayClass += ` ${styles.pastDay}`;
+                            if (user?.is_professor && hasSlots) dayClass += ` ${styles.hasSlots}`;
+                            if (!user?.is_professor && hasBooking) dayClass += ` ${styles.hasBooking}`;
+
+                            return (
+                                <button
+                                    key={`${day || "empty"}-${idx}`}
+                                    className={dayClass}
+                                    disabled={!day}
+                                    onClick={() => handleDaySelect(day)}
+                                    onMouseEnter={() => setHoveredDay(day)}
+                                    onMouseLeave={() => setHoveredDay(null)}
+                                >
+                                    <span className={styles.dayNumber}>{day || ""}</span>
+                                    {day && user?.is_professor && slotCountByDay[key] && (
+                                        <span className={styles.badge}>
+                                            {slotCountByDay[key].booked}/{slotCountByDay[key].total}
+                                        </span>
+                                    )}
+                                    {day && !user?.is_professor && bookingCountByDay[key] && (
+                                        <span className={styles.badgeStudent}>
+                                            {bookingCountByDay[key].length}
+                                        </span>
+                                    )}
+                                    
+                                    {showTooltip && (
+                                        <div className={styles.tooltip}>
+                                            <div className={styles.tooltipDate}>
+                                                {day}月{monthNames[currentMonth.getMonth()]}
+                                            </div>
+                                            {user?.is_professor ? (
+                                                <div className={styles.tooltipContent}>
+                                                    {dayData.slots.map((slot, i) => (
+                                                        <div key={i} className={styles.tooltipItem}>
+                                                            🕐 {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
+                                                            <span className={styles.tooltipBadge}>
+                                                                {slot.booked_count || 0}/{slot.capacity}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className={styles.tooltipContent}>
+                                                    {dayData.map((b, i) => (
+                                                        <div key={i} className={styles.tooltipItem}>
+                                                            🕐 {formatTime(b.start_time)} - {b.professor_name}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    <div className={styles.legend}>
+                        <div className={styles.legendItem}>
+                            <span className={`${styles.legendDot} ${styles.legendToday}`}></span>
+                            今天
+                        </div>
+                        {user?.is_professor ? (
+                            <div className={styles.legendItem}>
+                                <span className={`${styles.legendDot} ${styles.legendSlot}`}></span>
+                                已设课程
+                            </div>
+                        ) : (
+                            <div className={styles.legendItem}>
+                                <span className={`${styles.legendDot} ${styles.legendBooking}`}></span>
+                                已预订课程
+                            </div>
+                        )}
+                    </div>
+
+                    {user?.is_professor && (
+                        <button
+                            className={styles.createLessonBtn}
+                            onClick={() => setCreateLessonModalOpen(true)}
+                        >
+                            ➕ 创建新课程
+                        </button>
+                    )}
+                </div>
+
+                <div className={styles.sidePanel}>
+                    <div className={styles.listCard}>
+                        <div className={styles.listHeader}>
+                            <h3>
+                                {user?.is_professor ? "📋 您的课程" : "📋 您的预订"}
+                            </h3>
+                            {form.date && (
+                                <button
+                                    className={styles.clearFilter}
+                                    onClick={() => setForm(prev => ({ ...prev, date: "" }))}
+                                >
+                                    显示全部 ×
+                                </button>
+                            )}
+                        </div>
+
+                        {form.date && (
+                            <div className={styles.filterInfo}>
+                                已筛选: {formatFullDate(form.date)}
+                            </div>
+                        )}
+
+                        {loading ? (
+                            <div className={styles.loadingState}>
+                                <div className={styles.spinner}></div>
+                                <p>加载中...</p>
+                            </div>
+                        ) : user?.is_professor ? (
+                            <div className={styles.list}>
+                                {selectedDaySlots.length === 0 ? (
+                                    <div className={styles.emptyList}>
+                                        <div className={styles.emptyListIcon}>📭</div>
+                                        <p>{form.date ? "所选日期无课程" : "您还没有设置课程"}</p>
+                                        <span>使用上方表单添加您的第一个课程</span>
+                                    </div>
+                                ) : (
+                                    selectedDaySlots.map(slot => (
+                                        <div
+                                            key={slot.id}
+                                            className={`${styles.slotCard} ${isOngoing(slot.start_time, slot.end_time) ? styles.ongoing : ""
+                                                }`}
+                                        >
+                                            <div className={styles.slotMain}>
+                                                <div className={styles.slotDate}>
+                                                    {formatShortDate(slot.start_time)}
+                                                </div>
+                                                <div className={styles.slotTime}>
+                                                    {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
+                                                </div>
+                                                <div className={styles.slotMetaInfo}>
+                                                    🎓 {slot.teaching_type} · 💰 {slot.price} €
+                                                    {slot.location && <div>📍 {slot.location}</div>}
+                                                </div>
+                                                <div className={styles.slotMetaInfo}>
+                                                    👥 {slot.lesson_type}
+                                                    {slot.interest_name && <div>📘 {slot.interest_name}</div>}
+                                                </div>
+                                            </div>
+                                            {!isOngoing(slot.start_time, slot.end_time) && (
+                                                <>
+                                                    <div className={styles.slotMeta}>
+                                                        <div className={`${styles.capacityBadge} ${Number(slot.booked_count) >= Number(slot.capacity) ? styles.full : ""}`}>
+                                                            👥 {slot.booked_count || 0} / {slot.capacity}
+                                                        </div>
+                                                        {Number(slot.booked_count || 0) === 0 ? (
+                                                            <button
+                                                                className={styles.deleteBtn}
+                                                                onClick={() => handleDelete(slot.id)}
+                                                            >
+                                                                🗑️ 删除
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                className={styles.detailsBtn}
+                                                                onClick={() => openDetails(slot.id)}
+                                                            >
+                                                                📋 详情
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </>
+                                            )}
+                                            {isOngoing(slot.start_time, slot.end_time) &&
+                                                slot.teaching_type === "线上" && (
+                                                    <button
+                                                        className={styles.joinBtn}
+                                                        onClick={() => {
+                                                            if (slot.meeting_url) {
+                                                                window.open(slot.meeting_url, '_blank');
+                                                            } else {
+                                                                alert("会议链接尚未生成。");
+                                                            }
+                                                        }}
+                                                    >
+                                                        🎥 加入会议
+                                                    </button>
+                                                )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        ) : (
+                            <div className={styles.list}>
+                                {selectedDayBookings.length === 0 ? (
+                                    <div className={styles.emptyList}>
+                                        <div className={styles.emptyListIcon}>📭</div>
+                                        <p>{form.date ? "所选日期无预订" : "您还没有预订课程"}</p>
+                                        <span>搜索教师并预订课程</span>
+                                    </div>
+                                ) : (
+                                    selectedDayBookings.map(booking => (
+                                        <div
+                                            key={booking.id}
+                                            className={`${styles.slotCard} ${isOngoing(booking.start_time, booking.end_time)
+                                                ? styles.ongoing
+                                                : ""
+                                                }`}
+                                        >
+                                            <div className={styles.slotMain}>
+                                                <div className={styles.slotDate}>
+                                                    {formatShortDate(booking.start_time)}
+                                                </div>
+                                                <div className={styles.slotTime}>
+                                                    {formatTime(booking.start_time)} - {formatTime(booking.end_time)}
+                                                </div>
+                                                <div className={styles.professorName}>
+                                                    👨‍🏫 {booking.professor_name} {booking.professor_surname}
+                                                </div>
+                                                <div className={styles.slotMetaInfo}>
+                                                    🎓 {booking.teaching_type} · 💰 {booking.price} €
+                                                    {booking.interest_name && (
+                                                        <div>📘 {booking.interest_name}</div>
+                                                    )}
+                                                    👥 {booking.lesson_type}
+                                                </div>
+                                            </div>
+                                            {!isOngoing(booking.start_time, booking.end_time) && (
+                                                <div className={styles.slotMeta}>
+                                                    <button
+                                                        className={styles.cancelBtn}
+                                                        onClick={() => handleCancel(booking.slot_id)}
+                                                    >
+                                                        {isPastLesson(booking.end_time) ? "🗑️ 删除" : "❌ 取消"}
+                                                    </button>
+                                                    <button
+                                                        className={styles.detailsBtn}
+                                                        onClick={() => openBookingDetails(booking.id)}
+                                                    >
+                                                        📋 详情
+                                                    </button>
+                                                </div>
+                                            )}
+                                            {isOngoing(booking.start_time, booking.end_time) &&
+                                                booking.teaching_type === "线上" && (
+                                                    <button
+                                                        className={styles.joinBtn}
+                                                        onClick={() => {
+                                                            if (booking.meeting_url) {
+                                                                window.open(booking.meeting_url, '_blank');
+                                                            } else {
+                                                                alert("会议链接尚未生成。");
+                                                            }
+                                                        }}
+                                                    >
+                                                        🎥 加入会议
+                                                    </button>
+                                                )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* 时间段详情模态框（教授） */}
+            {detailsOpen && (
+                <div className={styles.modalOverlay} onClick={() => setDetailsOpen(false)}>
+                    <div className={styles.modal} onClick={e => e.stopPropagation()}>
+                        {detailsLoading ? (
+                            <p>加载中...</p>
+                        ) : slotDetails && (
+                            <>
+                                <h2>📋 课程详情</h2>
+
+                                <div className={styles.modalSection}>
+                                    <p><strong>📅 日期:</strong> {formatFullDate(slotDetails.slot.start_time)}</p>
+                                    <p><strong>🕐 时间:</strong> {formatTime(slotDetails.slot.start_time)} – {formatTime(slotDetails.slot.end_time)}</p>
+                                    <p><strong>🎓 类型:</strong> {slotDetails.slot.lesson_type}</p>
+                                    <p><strong>💻 方式:</strong> {slotDetails.slot.teaching_type}</p>
+                                    <p><strong>💰 价格:</strong> {slotDetails.slot.price} €</p>
+                                    {slotDetails.slot.location && (
+                                        <p><strong>📍 地点:</strong> {slotDetails.slot.location}</p>
+                                    )}
+                                    {slotDetails.slot.interest_name && (
+                                        <p><strong>📘 科目:</strong> {slotDetails.slot.interest_name}</p>
+                                    )}
+                                </div>
+
+                                <div className={styles.modalSection}>
+                                    <h3>👥 学生 ({slotDetails.students.length}):</h3>
+                                    {slotDetails.students.length === 0 ? (
+                                        <p>暂无预订。</p>
+                                    ) : (
+                                        slotDetails.students.map(s => (
+                                            <div key={s.id} className={styles.studentItem}>
+                                                <strong>{s.name} {s.surname}</strong>
+                                                {s.note && (
+                                                    <div className={styles.note}>
+                                                        💬 {s.note}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+
+                                <button
+                                    className={styles.closeBtn}
+                                    onClick={() => setDetailsOpen(false)}
+                                >
+                                    关闭
+                                </button>
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* 预订详情模态框（学生） */}
+            {bookingDetailsOpen && (
+                <div className={styles.modalOverlay} onClick={() => setBookingDetailsOpen(false)}>
+                    <div className={styles.modal} onClick={e => e.stopPropagation()}>
+                        {bookingDetailsLoading ? (
+                            <p>加载中...</p>
+                        ) : bookingDetails && (
+                            <>
+                                <h2>📋 预订详情</h2>
+
+                                <div className={styles.modalSection}>
+                                    <p>
+                                        <strong>📅 日期:</strong>{" "}
+                                        {formatFullDate(bookingDetails.start_time)}
+                                    </p>
+                                    <p>
+                                        <strong>🕐 时间:</strong>{" "}
+                                        {formatTime(bookingDetails.start_time)} –{" "}
+                                        {formatTime(bookingDetails.end_time)}
+                                    </p>
+                                    <p>
+                                        <strong>👨‍🏫 教师:</strong>{" "}
+                                        {bookingDetails.professor_name}{" "}
+                                        {bookingDetails.professor_surname}
+                                    </p>
+                                    <p>
+                                        <strong>🎓 类型:</strong>{" "}
+                                        {bookingDetails.lesson_type}
+                                    </p>
+                                    <p>
+                                        <strong>💻 方式:</strong>{" "}
+                                        {bookingDetails.teaching_type}
+                                    </p>
+                                    <p>
+                                        <strong>💰 价格:</strong>{" "}
+                                        {bookingDetails.price} €
+                                    </p>
+
+                                    {bookingDetails.location && (
+                                        <p>
+                                            <strong>📍 地点:</strong>{" "}
+                                            {bookingDetails.location}
+                                        </p>
+                                    )}
+
+                                    {bookingDetails.interest_name && (
+                                        <p>
+                                            <strong>📘 科目:</strong>{" "}
+                                            {bookingDetails.interest_name}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className={styles.modalSection}>
+                                    <h3>💬 您的备注</h3>
+                                    <textarea
+                                        className={styles.noteTextarea}
+                                        value={noteDraft}
+                                        onChange={(e) => setNoteDraft(e.target.value)}
+                                        placeholder="为教师留下备注..."
+                                        maxLength={500}
+                                    />
+                                    <button
+                                        className={styles.saveBtn}
+                                        onClick={saveNote}
+                                        disabled={noteSaving}
+                                    >
+                                        {noteSaving ? "保存中..." : "💾 保存备注"}
+                                    </button>
+                                </div>
+
+                                <button
+                                    className={styles.closeBtn}
+                                    onClick={() => setBookingDetailsOpen(false)}
+                                >
+                                    关闭
+                                </button>
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* 创建课程模态框（教授） */}
+            {createLessonModalOpen && (
+                <div className={styles.modalOverlay} onClick={() => setCreateLessonModalOpen(false)}>
+                    <div className={styles.createLessonModal} onClick={e => e.stopPropagation()}>
+                        <h2>➕ 创建新课程</h2>
+                        <p className={styles.formHint}>填写课程详细信息</p>
+
+                        <form onSubmit={handleCreate}>
+                            <div className={styles.formGrid}>
+                                <div className={styles.field}>
+                                    <label>📅 日期</label>
+                                    <input
+                                        type="date"
+                                        value={form.date}
+                                        onChange={(e) => setForm(prev => ({ ...prev, date: e.target.value }))}
+                                    />
+                                </div>
+                                <div className={styles.fieldRow}>
+                                    <div className={styles.field}>
+                                        <label>🕐 开始时间</label>
+                                        <input
+                                            type="time"
+                                            value={form.start}
+                                            onChange={(e) => setForm(prev => ({ ...prev, start: e.target.value }))}
+                                        />
+                                    </div>
+                                    <div className={styles.field}>
+                                        <label>🕐 结束时间</label>
+                                        <input
+                                            type="time"
+                                            value={form.end}
+                                            onChange={(e) => setForm(prev => ({ ...prev, end: e.target.value }))}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className={styles.field}>
+                                    <label>💰 价格 (€)</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={form.price}
+                                        onChange={(e) => setForm(prev => ({ ...prev, price: e.target.value }))}
+                                    />
+                                </div>
+
+                                <div className={styles.field}>
+                                    <label>👥 课程类型</label>
+                                    <select
+                                        value={form.lesson_type}
+                                        onChange={(e) =>
+                                            setForm(prev => ({
+                                                ...prev,
+                                                lesson_type: e.target.value,
+                                                capacity: e.target.value === "一对一" ? 1 : 2,
+                                                interest_id: ""
+                                            }))
+                                        }
+                                    >
+                                        <option value="一对一">一对一</option>
+                                        <option value="集体课">集体课</option>
+                                    </select>
+                                </div>
+
+                                {form.lesson_type === "集体课" && (
+                                    <div className={styles.field}>
+                                        <label>👥 容量</label>
+                                        <input
+                                            type="number"
+                                            min="2"
+                                            value={form.capacity}
+                                            onChange={(e) => setForm(prev => ({ ...prev, capacity: e.target.value }))}
+                                        />
+                                    </div>
+                                )}
+
+                                {form.lesson_type === "集体课" && (
+                                    <div className={styles.field}>
+                                        <label>📘 科目</label>
+                                        {interests.length === 0 ? (
+                                            <div className={styles.formHint}>您还没有添加科目</div>
+                                        ) : (
+                                            <select
+                                                value={form.interest_id}
+                                                onChange={(e) => setForm(prev => ({ ...prev, interest_id: e.target.value }))}
+                                            >
+                                                <option value="">选择科目</option>
+                                                {interests.map(i => (
+                                                    <option key={i.id} value={i.id}>{i.name}</option>
+                                                ))}
+                                            </select>
+                                        )}
+                                    </div>
+                                )}
+
+                                <div className={styles.field}>
+                                    <label>🎓 授课方式</label>
+                                    <select
+                                        value={form.teaching_type}
+                                        onChange={(e) => setForm(prev => ({ ...prev, teaching_type: e.target.value }))}
+                                    >
+                                        <option value="线上">线上</option>
+                                        <option value="线下">线下</option>
+                                    </select>
+                                </div>
+
+                                {form.teaching_type === "线下" && (
+                                    <div className={styles.field}>
+                                        <label>📍 地点</label>
+                                        {!isLoaded ? (
+                                            <input disabled placeholder="地图加载中..." className={styles.inputField} />
+                                        ) : (
+                                            <Autocomplete
+                                                options={{ types: ["address"], componentRestrictions: { country: "hr" } }}
+                                                onLoad={onLoadAutocomplete}
+                                                onPlaceChanged={onPlaceChanged}
+                                            >
+                                                <input
+                                                    type="text"
+                                                    placeholder="输入地址"
+                                                    value={form.location}
+                                                    onChange={(e) => setForm(prev => ({ ...prev, location: e.target.value }))}
+                                                    className={styles.inputField}
+                                                />
+                                            </Autocomplete>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className={styles.modalActions}>
+                                <button
+                                    type="button"
+                                    className={styles.cancelReviewBtn}
+                                    onClick={() => setCreateLessonModalOpen(false)}
+                                >
+                                    取消
+                                </button>
+                                <button type="submit" className={styles.createLessonSubmitBtn}>
+                                    ✓ 创建课程
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}

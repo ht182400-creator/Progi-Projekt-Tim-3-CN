@@ -20,7 +20,7 @@ function RegisterEmail() {
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
 
-    const infoText = "Registrirajte se kako biste pristupili rezervacijama, instruktorima i personaliziranom učenju.";
+    const infoText = "注册以访问预约、导师和个性化学习。";
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -28,11 +28,11 @@ function RegisterEmail() {
         setMessage('');
 
         if (password !== passwordCheck) {
-            setError("Lozinke se ne podudaraju.");
+            setError("密码不匹配。");
             return;
         }
         if (!termsAndConditions) {
-            setError("Morate prihvatiti uvjete korištenja.");
+            setError("您必须接受使用条款。");
             return;
         }
 
@@ -48,7 +48,7 @@ function RegisterEmail() {
 
             setMessage(response.data.message);
         } catch (err) {
-            setError(err.response?.data?.message || 'Greška pri registraciji.');
+            setError(err.response?.data?.message || '注册错误。');
         } finally {
             setLoading(false);
         }
@@ -61,11 +61,11 @@ function RegisterEmail() {
     return (
         <AuthLayout infoText={infoText} infoImage={slikaRegistracija}>
             <div className={styles.formContainer}>
-                <h2>Registracija</h2>
+                <h2>注册</h2>
 
                 {message ? (
                     <div className={styles.successMessage}>
-                        <h3>Provjerite email!</h3>
+                        <h3>检查您的邮箱！</h3>
                         <p>{message}</p>
                     </div>
                 ) : (
@@ -73,7 +73,7 @@ function RegisterEmail() {
                         <Input
                             icon={EmailIcon}
                             type="email"
-                            placeholder="Email Adresa"
+                            placeholder="邮箱地址"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
@@ -81,7 +81,7 @@ function RegisterEmail() {
                         <Input
                             rightIcon={showPassword ? EyeIcon : EyeOffIcon}
                             type={showPassword ? 'text' : 'password'}
-                            placeholder="Lozinka"
+                            placeholder="密码"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             onRightIconClick={() => setShowPassword(!showPassword)}
@@ -91,7 +91,7 @@ function RegisterEmail() {
                         <Input
                             rightIcon={showPassword ? EyeIcon : EyeOffIcon}
                             type={showPassword ? 'text' : 'password'}
-                            placeholder="Potvrdi Lozinku"
+                            placeholder="确认密码"
                             value={passwordCheck}
                             onChange={(e) => setPasswordCheck(e.target.value)}
                             onRightIconClick={() => setShowPassword(!showPassword)}
@@ -106,15 +106,15 @@ function RegisterEmail() {
                                 className={styles.requirementsToggle}
                                 onClick={() => setShowRequirements(!showRequirements)}
                             >
-                                <span>Minimalni zahtjevi za lozinku:</span>
+                                <span>密码最低要求:</span>
                                 <ChevronDownIcon size={16} className={showRequirements ? styles.rotated : ''} />
                             </button>
                             {showRequirements && (
                                 <ul className={styles.requirementsList}>
-                                    <li>Najmanje 8 znakova</li>
-                                    <li>Barem jedno veliko slovo</li>
-                                    <li>Barem jedan broj</li>
-                                    <li>Barem jedan specijalni znak</li>
+                                    <li>至少8个字符</li>
+                                    <li>至少一个大写字母</li>
+                                    <li>至少一个数字</li>
+                                    <li>至少一个特殊字符</li>
                                 </ul>
                             )}
                         </div>
@@ -126,7 +126,7 @@ function RegisterEmail() {
                                 checked={termsAndConditions}
                                 onChange={(e) => setTermsAndConditions(e.target.checked)}
                             />
-                            <label htmlFor="terms">Prihvaćam uvjete korištenja.</label>
+                            <label htmlFor="terms">接受使用条款.</label>
                         </div>
 
                         {error && <p className={styles.errorMessage}>{error}</p>}
@@ -136,7 +136,7 @@ function RegisterEmail() {
                             className={`${styles.btn} ${styles.btnPrimary}`}
                             disabled={loading || !termsAndConditions}
                         >
-                            {loading ? 'Slanje...' : 'Registracija'}
+                            {loading ? '发送...' : '注册'}
                         </button>
 
                         <div className={styles.divider}>
@@ -148,9 +148,9 @@ function RegisterEmail() {
                         </div>
 
                         <div className={styles.loginLink}>
-                            <p>Već imate račun?</p>
+                            <p>已有账户？</p>
                             <Link to="/login" className={`${styles.btn} ${styles.btnSecondary}`}>
-                                Prijava
+                                登录
                             </Link>
                         </div>
                     </form>

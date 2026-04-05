@@ -16,8 +16,7 @@ export default function Footer() {
                         </div>
 
                         <p className={styles.brandText}>
-                            Poznata platforma za instrukcije u Hrvatskoj. Povezujemo učenike i instruktore
-                            za lakše, brže i sigurnije učenje.
+                        知名的辅导平台。我们连接学生与导师，让学习更轻松、更快捷、更安全
                         </p>
 
                         <div className={styles.socials}>
@@ -33,25 +32,25 @@ export default function Footer() {
 
                     {/* Platform */}
                     <div className={styles.col}>
-                        <h4 className={styles.colTitle}>Platforma</h4>
-                        <a className={styles.link} href="#">O nama</a>
-                        <a className={styles.link} href="#">Postani instruktor</a>
-                        <a className={styles.link} href="#">Cjenik</a>
-                        <a className={styles.link} href="#">Sigurnost</a>
+                        <h4 className={styles.colTitle}>平台</h4>
+                        <a className={styles.link} href="#">关于我们</a>
+                        <a className={styles.link} href="#">成为导师</a>
+                        <a className={styles.link} href="#">价格表</a>
+                        <a className={styles.link} href="#">安全</a>
                     </div>
 
                     {/* Support */}
                     <div className={styles.col}>
-                        <h4 className={styles.colTitle}>Podrška</h4>
-                        <a className={styles.link} href="#">Centar za pomoć</a>
-                        <a className={styles.link} href="#">Česta pitanja (FAQ)</a>
-                        <a className={styles.link} href="#">Kontakt</a>
-                        <a className={styles.link} href="#">Uvjeti korištenja</a>
+                        <h4 className={styles.colTitle}>支持</h4>
+                        <a className={styles.link} href="#">帮助中心</a>
+                        <a className={styles.link} href="#">常见问题 (FAQ)</a>
+                        <a className={styles.link} href="#">联系方式</a>
+                        <a className={styles.link} href="#">使用条款</a>
                     </div>
 
                     {/* Contact */}
                     <div className={styles.col}>
-                        <h4 className={styles.colTitle}>Kontakt</h4>
+                        <h4 className={styles.colTitle}>联系方式</h4>
 
                         <div className={styles.contactRow}>
                             <span className={styles.icon} aria-hidden="true">✉</span>
@@ -60,7 +59,7 @@ export default function Footer() {
 
                         <div className={styles.contactRow}>
                             <span className={styles.icon} aria-hidden="true">📍</span>
-                            <span className={styles.contactText}>Zagreb, Hrvatska</span>
+                            <span className={styles.contactText}>克罗地亚，萨格勒布</span>
                         </div>
                     </div>
                 </div>
@@ -68,7 +67,7 @@ export default function Footer() {
                 <div className={styles.divider} />
 
                 <div className={styles.bottom}>
-                    © {new Date().getFullYear()} FerTutor. Sva prava pridržana.
+                    © {new Date().getFullYear()} FerTutor. 版权所有.
                 </div>
             </div>
         </footer>

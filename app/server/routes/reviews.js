@@ -4,7 +4,7 @@ const pool = require("../config/db");
 const verifyToken = require("../middleware/verifyToken");
 const verifyTokenOptional = require("../middleware/verifyTokenOptional");
 
-// Get all reviews for an instructor (public)
+// 获取某位教师的所有评论（公开）
 router.get("/instructor/:instructorId", verifyTokenOptional, async (req, res) => {
     try {
         const { instructorId } = req.params;
@@ -26,7 +26,7 @@ router.get("/instructor/:instructorId", verifyTokenOptional, async (req, res) =>
 
         const result = await pool.query(query, [instructorId]);
 
-        // Calculate average rating
+        // 计算平均评分
         const avgQuery = `
             SELECT 
                 COALESCE(AVG(rating), 0) AS average_rating,
@@ -43,17 +43,17 @@ router.get("/instructor/:instructorId", verifyTokenOptional, async (req, res) =>
         });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Greška kod dohvaćanja recenzija" });
+        res.status(500).json({ message: "获取评论时出错" });
     }
 });
 
-// Check if current user can review an instructor (has completed lesson, hasn't reviewed yet)
+// 检查当前用户是否可以对教师进行评价（已完成课程且未评价）
 router.get("/can-review/:instructorId", verifyToken, async (req, res) => {
     try {
         const { instructorId } = req.params;
         const studentId = req.user.id;
 
-        // Check if student already reviewed this instructor
+        // 检查学生是否已评价过该教师
         const existingReview = await pool.query(
             "SELECT id FROM reviews WHERE professor_id = $1 AND student_id = $2",
             [instructorId, studentId]
@@ -66,7 +66,7 @@ router.get("/can-review/:instructorId", verifyToken, async (req, res) => {
             });
         }
 
-        // Check if student has at least one completed lesson with this instructor
+        // 检查学生与该教师是否有至少一节已完成的课程
         const completedLesson = await pool.query(`
             SELECT 1
             FROM professor_slot_bookings psb
@@ -83,36 +83,36 @@ router.get("/can-review/:instructorId", verifyToken, async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Greška kod provjere mogućnosti recenzije" });
+        res.status(500).json({ message: "检查评论权限时出错" });
     }
 });
 
-// Submit a review (1 review per student per instructor)
+// 提交评论（每位学生对每位教师只能评论一次）
 router.post("/", verifyToken, async (req, res) => {
     try {
         const studentId = req.user.id;
         const { professor_id, rating, comment } = req.body;
 
-        // Validate rating
+        // 验证评分
         if (!rating || rating < 1 || rating > 5) {
-            return res.status(400).json({ message: "Ocjena mora biti između 1 i 5" });
+            return res.status(400).json({ message: "评分必须在 1 到 5 之间" });
         }
 
         if (!professor_id) {
-            return res.status(400).json({ message: "ID instruktora je obavezan" });
+            return res.status(400).json({ message: "教师 ID 为必填项" });
         }
 
-        // Check if student already reviewed this instructor
+        // 检查学生是否已评价过该教师
         const existingReview = await pool.query(
             "SELECT id FROM reviews WHERE professor_id = $1 AND student_id = $2",
             [professor_id, studentId]
         );
 
         if (existingReview.rows.length > 0) {
-            return res.status(400).json({ message: "Već ste ostavili recenziju za ovog instruktora" });
+            return res.status(400).json({ message: "您已为这位教师留下过评论" });
         }
 
-        // Verify student has at least one completed lesson with this instructor
+        // 验证学生与该教师有至少一节已完成的课程
         const completedLesson = await pool.query(`
             SELECT psb.id
             FROM professor_slot_bookings psb
@@ -124,10 +124,10 @@ router.post("/", verifyToken, async (req, res) => {
         `, [studentId, professor_id]);
 
         if (completedLesson.rows.length === 0) {
-            return res.status(403).json({ message: "Možete ostaviti recenziju samo nakon završenog termina s ovim instruktorom" });
+            return res.status(403).json({ message: "只有在与该教师完成课程后才能发表评论" });
         }
 
-        // Insert the review (without booking_id - 1 review per student per instructor)
+        // 插入评论（不绑定 booking_id - 每位学生对每位教师只能评论一次）
         const insertQuery = `
             INSERT INTO reviews (professor_id, student_id, rating, comment)
             VALUES ($1, $2, $3, $4)
@@ -141,17 +141,17 @@ router.post("/", verifyToken, async (req, res) => {
             comment || null
         ]);
 
-        res.status(201).json({ message: "Recenzija uspješno dodana!" });
+        res.status(201).json({ message: "评论添加成功！" });
     } catch (err) {
         console.error(err);
-        if (err.code === '23505') { // Unique violation
-            return res.status(400).json({ message: "Već ste ostavili recenziju za ovog instruktora" });
+        if (err.code === '23505') { // 违反唯一约束
+            return res.status(400).json({ message: "您已为这位教师留下过评论" });
         }
-        res.status(500).json({ message: "Greška kod dodavanja recenzije" });
+        res.status(500).json({ message: "添加评论时出错" });
     }
 });
 
-// Get my reviews (for instructors to see in their profile)
+// 获取我的评论（教师在自己的资料中查看）
 router.get("/my-reviews", verifyToken, async (req, res) => {
     try {
         const instructorId = req.user.id;
@@ -173,7 +173,7 @@ router.get("/my-reviews", verifyToken, async (req, res) => {
 
         const result = await pool.query(query, [instructorId]);
 
-        // Calculate average rating
+        // 计算平均评分
         const avgQuery = `
             SELECT 
                 COALESCE(AVG(rating), 0) AS average_rating,
@@ -190,11 +190,11 @@ router.get("/my-reviews", verifyToken, async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Greška kod dohvaćanja recenzija" });
+        res.status(500).json({ message: "获取评论时出错" });
     }
 });
 
-// Delete own review
+// 删除自己的评论
 router.delete("/:reviewId", verifyToken, async (req, res) => {
     try {
         const { reviewId } = req.params;
@@ -206,13 +206,13 @@ router.delete("/:reviewId", verifyToken, async (req, res) => {
         );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ message: "Recenzija nije pronađena ili nemate pravo za brisanje" });
+            return res.status(404).json({ message: "未找到评论或您无权删除" });
         }
 
-        res.json({ message: "Recenzija uspješno obrisana" });
+        res.json({ message: "评论删除成功" });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Greška kod brisanja recenzije" });
+        res.status(500).json({ message: "删除评论时出错" });
     }
 });
 

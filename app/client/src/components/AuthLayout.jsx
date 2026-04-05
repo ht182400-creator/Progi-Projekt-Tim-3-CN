@@ -15,7 +15,7 @@ function AuthLayout({ children, infoText, infoImage, blurLeft = false }) {
                 <img
                     className={styles.infoImage}
                     src={infoImage}
-                    alt="Ilustracija"
+                    alt="插图"
                 />
             </div>
 

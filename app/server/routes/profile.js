@@ -9,7 +9,7 @@ router.get('/', verifyToken, async (req, res) => {
         const result = await pool.query('SELECT id, name, surname, email, is_professor, profile_picture FROM users WHERE id = $1', [req.user.id]);
 
         if(result.rows.length === 0){
-            return res.status(404).json({message: 'Korisnik ne postoji'});
+            return res.status(404).json({message: '用户不存在'});
         }
 
         const user = result.rows[0];
@@ -36,8 +36,8 @@ router.get('/', verifyToken, async (req, res) => {
         });
 
     }catch(err){
-        console.error('error while fetching profile', err);
-        res.status(500).json({message: 'server je u kurcu'});
+        console.error('获取个人资料时出错', err);
+        res.status(500).json({message: '服务器错误'});
     }
 });
 
@@ -47,7 +47,7 @@ router.post('/update', verifyToken, async (req, res) => {
         const {name, surname, email, sex, city, education, teaching, is_professor, date_of_birth} = req.body;
 
         if(!name || !surname || !email || is_professor === null){
-            return res.status(400).json({message: 'sva obavezna polja nisu ispunjena'});
+            return res.status(400).json({message: '未填写所有必填字段'});
         }
 
         await pool.query(
@@ -67,18 +67,18 @@ router.post('/update', verifyToken, async (req, res) => {
             );
         }
 
-        res.json({message: 'sve stima'});
+        res.json({message: '一切正常'});
 
     }catch(err){
-        console.error('error while updating user', err);
-        res.status(500).json({message: 'server je zeznut'});
+        console.error('更新用户时出错', err);
+        res.status(500).json({message: '服务器出错'});
     }
 });
 
 router.post('/upload-image', verifyToken, upload.single('profileImage'), async (req, res) => {
     try {
         if (!req.file) {
-            return res.status(400).json({ message: 'Niste odabrali sliku' });
+            return res.status(400).json({ message: '未选择图片' });
         }
 
         const userId = req.user.id;
@@ -93,10 +93,10 @@ router.post('/upload-image', verifyToken, upload.single('profileImage'), async (
             deleteOldImage(oldImage);
         }
 
-        res.json({ message: 'Slika uspješno uploadana', filename: newFilename });
+        res.json({ message: '图片上传成功', filename: newFilename });
     } catch (err) {
-        console.error('Error uploading image:', err);
-        res.status(500).json({ message: 'Greška pri uploadu slike' });
+        console.error('上传图片时出错:', err);
+        res.status(500).json({ message: '上传图片时出错' });
     }
 });
 
@@ -108,20 +108,20 @@ router.delete('/delete-image', verifyToken, async (req, res) => {
         const filename = result.rows[0]?.profile_picture;
 
         if (!filename) {
-            return res.status(404).json({ message: 'Nema slike za brisanje' });
+            return res.status(404).json({ message: '没有要删除的图片' });
         }
 
         await pool.query('UPDATE users SET profile_picture = NULL WHERE id = $1', [userId]);
         deleteOldImage(filename);
 
-        res.json({ message: 'Slika uspješno obrisana' });
+        res.json({ message: '图片已成功删除' });
     } catch (err) {
-        console.error('Error deleting image:', err);
-        res.status(500).json({ message: 'Greška pri brisanju slike' });
+        console.error('删除图片时出错:', err);
+        res.status(500).json({ message: '删除图片时出错' });
     }
 });
 
-// GET current user interests
+// 获取当前用户的科目兴趣
 router.get("/interests", verifyToken, async (req, res) => {
     try {
         const result = await pool.query(`
@@ -133,16 +133,16 @@ router.get("/interests", verifyToken, async (req, res) => {
 
         res.json(result.rows.map(r => r.name));
     } catch (err) {
-        res.status(500).json({ message: "Greška kod dohvaćanja interesa" });
+        res.status(500).json({ message: "获取兴趣时出错" });
     }
 });
 
-//update interests
+// 更新兴趣
 router.post("/interests", verifyToken, async (req, res) => {
     const { interests } = req.body;
 
     if (!Array.isArray(interests)) {
-        return res.status(400).json({ message: "Neispravan format interesa" });
+        return res.status(400).json({ message: "兴趣格式无效" });
     }
 
     try {
@@ -157,7 +157,7 @@ router.post("/interests", verifyToken, async (req, res) => {
                 [interests]
             );
 
-            // Fixed SQL injection - use parameterized queries
+            // 已修复 SQL 注入 - 使用参数化查询
             if (dbInterests.rows.length > 0) {
                 const insertPromises = dbInterests.rows.map(i => 
                     pool.query(
@@ -169,23 +169,23 @@ router.post("/interests", verifyToken, async (req, res) => {
             }
         }
 
-        res.json({ message: "Interesi spremljeni" });
+        res.json({ message: "兴趣已保存" });
     } catch (err) {
-        res.status(500).json({ message: "Greška kod spremanja interesa" });
+        res.status(500).json({ message: "保存兴趣时出错" });
     }
 });
 
-//mjenjanje podataka za javni profil profesora
+// 更新教授公开资料
 router.post("/public", verifyToken, async (req, res) => {
     try {
-        // Verify user is actually a professor
+        // 验证用户确实是教授
         const userCheck = await pool.query(
             'SELECT is_professor FROM users WHERE id = $1',
             [req.user.id]
         );
         
         if (!userCheck.rows[0]?.is_professor) {
-            return res.status(403).json({ message: "Samo profesori mogu ažurirati javni profil" });
+            return res.status(403).json({ message: "只有教授可以更新公开资料" });
         }
 
         const {
@@ -210,19 +210,19 @@ router.post("/public", verifyToken, async (req, res) => {
             req.user.id
         ]);
 
-        res.json({ message: "Javni profil ažuriran" });
+        res.json({ message: "公开资料已更新" });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Greška kod spremanja javnog profila" });
+        res.status(500).json({ message: "保存公开资料时出错" });
     }
 });
 
-// Toggle public profile
+// 切换公开资料可见性
 router.post("/public/publish", verifyToken, async (req, res) => {
     try {
-        const { publish } = req.body; // očekuje true/false
+        const { publish } = req.body; // 期望 true/false
         if (typeof publish !== "boolean") {
-            return res.status(400).json({ message: "Neispravan format" });
+            return res.status(400).json({ message: "格式无效" });
         }
 
         await pool.query(
@@ -230,10 +230,10 @@ router.post("/public/publish", verifyToken, async (req, res) => {
             [publish, req.user.id]
         );
 
-        res.json({ message: publish ? "Profil je objavljen" : "Profil je skriven", is_published: publish });
+        res.json({ message: publish ? "资料已公开" : "资料已隐藏", is_published: publish });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Greška kod ažuriranja publikacije profila" });
+        res.status(500).json({ message: "更新资料可见性时出错" });
     }
 });
 

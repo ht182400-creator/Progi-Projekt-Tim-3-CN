@@ -5,7 +5,7 @@ import {AuthContext} from "../context/AuthContext.jsx";
 
 const ProfileImageModal = ({ isOpen, onClose, currentImage, onImageUpdated }) => {
     const [selectedImage, setSelectedImage] = useState(null);
-    const [preview, setPreview] = useState(null);
+    const [preview, set预览] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const fileInputRef = useRef(null);
@@ -29,7 +29,7 @@ const ProfileImageModal = ({ isOpen, onClose, currentImage, onImageUpdated }) =>
         setError('');
         setSelectedImage(file);
         const reader = new FileReader();
-        reader.onloadend = () => setPreview(reader.result);
+        reader.onloadend = () => set预览(reader.result);
         reader.readAsDataURL(file);
     };
 
@@ -44,7 +44,7 @@ const ProfileImageModal = ({ isOpen, onClose, currentImage, onImageUpdated }) =>
             refreshUser();
             handleClose();
         } catch (err) {
-            setError(err.response?.data?.message || 'Greška pri uploadu slike');
+            setError(err.response?.data?.message || '错误 pri uploadu slike');
         } finally {
             setLoading(false);
         }
@@ -60,7 +60,7 @@ const ProfileImageModal = ({ isOpen, onClose, currentImage, onImageUpdated }) =>
             onImageUpdated(null);
             handleClose();
         } catch (err) {
-            setError(err.response?.data?.message || 'Greška pri brisanju slike');
+            setError(err.response?.data?.message || '错误 pri brisanju slike');
         } finally {
             setLoading(false);
         }
@@ -68,7 +68,7 @@ const ProfileImageModal = ({ isOpen, onClose, currentImage, onImageUpdated }) =>
 
     const handleClose = () => {
         setSelectedImage(null);
-        setPreview(null);
+        set预览(null);
         setError('');
         onClose();
     };
@@ -84,11 +84,11 @@ const ProfileImageModal = ({ isOpen, onClose, currentImage, onImageUpdated }) =>
                     ×
                 </button>
 
-                <h2 className={styles.title}>Profilna Slika</h2>
+                <h2 className={styles.title}>头像</h2>
 
                 <div className={styles.imagePreview}>
                     {displayImage ? (
-                        <img src={displayImage} alt="Preview" className={styles.previewImage} />
+                        <img src={displayImage} alt="预览" className={styles.previewImage} />
                     ) : (
                         <div className={styles.placeholder}>
                             <i className="fa-solid fa-user"></i>
@@ -105,7 +105,7 @@ const ProfileImageModal = ({ isOpen, onClose, currentImage, onImageUpdated }) =>
                         disabled={loading}
                     >
                         <i className="fa-solid fa-upload"></i>
-                        {selectedImage ? 'Promijeni odabir' : 'Odaberi novu sliku'}
+                        {selectedImage ? 'Promijeni odabir' : '选择 novu sliku'}
                     </button>
 
                     {currentImage && (
@@ -134,7 +134,7 @@ const ProfileImageModal = ({ isOpen, onClose, currentImage, onImageUpdated }) =>
                         onClick={handleClose}
                         disabled={loading}
                     >
-                        Odustani
+                        取消
                     </button>
                     <button
                         className={styles.saveBtn}

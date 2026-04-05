@@ -57,7 +57,7 @@ function FinishRegister() {
         education: ''
     });
     const [profileImage, setProfileImage] = useState(null);
-    const [imagePreview, setImagePreview] = useState(null);
+    const [image预览, setImage预览] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const fileInputRef = useRef(null);
@@ -103,7 +103,7 @@ function FinishRegister() {
         setProfileImage(file);
 
         const reader = new FileReader();
-        reader.onloadend = () => setImagePreview(reader.result);
+        reader.onloadend = () => setImage预览(reader.result);
         reader.readAsDataURL(file);
     };
 
@@ -139,13 +139,13 @@ function FinishRegister() {
 
             navigate('/interests-register');
         } catch (err) {
-            setError(err.response?.data?.message || 'Greška pri završetku registracije.');
+            setError(err.response?.data?.message || '错误 pri završetku registracije.');
         } finally {
             setLoading(false);
         }
     };
 
-    const infoText = "Registrirajte se kako biste pristupili rezervacijama, instruktorima i personaliziranom učenju.";
+    const infoText = "注册以访问预约、导师和个性化学习。";
 
     return (
         <AuthLayout
@@ -154,16 +154,16 @@ function FinishRegister() {
             blurLeft={true}
         >
             <div className={styles.formContainer}>
-                <h2>Osnovni osobni podaci</h2>
+                <h2>基本个人信息</h2>
 
-                {/* Profile Avatar */}
+                {/* 个人资料e Avatar */}
                 <div className={styles.avatarSection}>
                     <div
                         className={styles.avatarWrapper}
                         onClick={() => fileInputRef.current?.click()}
                     >
-                        {imagePreview ? (
-                            <img src={imagePreview} alt="Preview" className={styles.avatarImage} />
+                        {image预览 ? (
+                            <img src={imagePreview} alt="预览" className={styles.avatarImage} />
                         ) : (
                             <ProfileAvatarIcon size={100} />
                         )}
@@ -172,7 +172,7 @@ function FinishRegister() {
                         </div>
                     </div>
                     <span className={styles.avatarLabel}>
-                        {imagePreview ? 'Promijenite sliku' : 'Dodajte profilnu sliku'}
+                        {image预览 ? 'Promijenite sliku' : 'Dodajte profilnu sliku'}
                     </span>
                     <input
                         ref={fileInputRef}
@@ -187,7 +187,7 @@ function FinishRegister() {
                     <Input
                         icon={UserIcon}
                         name="name"
-                        placeholder="Ime*"
+                        placeholder="名字 *"
                         value={formData.name}
                         onChange={handleChange}
                         required
@@ -195,7 +195,7 @@ function FinishRegister() {
                     <Input
                         icon={UserIcon}
                         name="surname"
-                        placeholder="Prezime*"
+                        placeholder="姓氏 *"
                         value={formData.surname}
                         onChange={handleChange}
                         required
@@ -204,7 +204,7 @@ function FinishRegister() {
                         icon={CalendarIcon}
                         type="date"
                         name="date_of_birth"
-                        placeholder="Datum rođenja"
+                        placeholder="出生日期"
                         value={formData.date_of_birth}
                         onChange={handleChange}
                         required
@@ -219,10 +219,10 @@ function FinishRegister() {
                                 onChange={handleChange}
                                 required
                             >
-                                <option value="" disabled>Spol*</option>
-                                <option value="M">Muški</option>
-                                <option value="F">Ženski</option>
-                                <option value="X">Ostalo / Ne želim reći</option>
+                                <option value="" disabled>性别 *</option>
+                                <option value="M">男</option>
+                                <option value="F">女</option>
+                                <option value="X">其他 / 不愿透露</option>
                             </select>
                             <ChevronDownIcon size={18} className={styles.selectIcon} />
                         </div>
@@ -237,9 +237,9 @@ function FinishRegister() {
                                 onChange={handleChange}
                                 required
                             >
-                                <option value="" disabled>Tip Korisnika*</option>
-                                <option value="false">Student</option>
-                                <option value="true">Profesor</option>
+                                <option value="" disabled>用户类型 *</option>
+                                <option value="false">学生</option>
+                                <option value="true">教师</option>
                             </select>
                             <ChevronDownIcon size={18} className={styles.selectIcon} />
                         </div>
@@ -248,7 +248,7 @@ function FinishRegister() {
                     <Input
                         icon={CityIcon}
                         name="city"
-                        placeholder="Grad*"
+                        placeholder="城市 *"
                         value={formData.city}
                         onChange={handleChange}
                         required
@@ -258,7 +258,7 @@ function FinishRegister() {
                         <Input
                             icon={EducationIcon}
                             name="education"
-                            placeholder="Škola / Fakultet*"
+                            placeholder="学校/学院 *"
                             value={formData.education}
                             onChange={handleChange}
                             required
@@ -269,7 +269,7 @@ function FinishRegister() {
                         <Input
                             icon={EducationIcon}
                             name="education"
-                            placeholder="Edukacija / Stručna sprema*"
+                            placeholder="教育/学历 *"
                             value={formData.education}
                             onChange={handleChange}
                             required
@@ -277,7 +277,7 @@ function FinishRegister() {
                     )}
 
 
-                    <p className={styles.requiredNote}>Sa znakom * označena obavezna polja.</p>
+                    <p className={styles.requiredNote}>带 * 的必填字段.</p>
 
                     {error && <p className={styles.errorMessage}>{error}</p>}
 

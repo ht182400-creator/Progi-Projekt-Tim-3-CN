@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 function verifyTokenOptional(req, res, next) {
     const token = req.cookies?.token;
 
-    // Ako nema tokena → samo nastavi dalje
+    // 如果没有 token → 直接继续
     if (!token) {
         req.user = null;
         return next();
@@ -13,7 +13,7 @@ function verifyTokenOptional(req, res, next) {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded;
     } catch (err) {
-        // Ako je token nevažeći → ignoriraj ga
+        // 如果 token 无效 → 忽略它
         req.user = null;
     }
 

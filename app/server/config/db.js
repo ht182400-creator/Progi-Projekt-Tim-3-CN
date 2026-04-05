@@ -13,7 +13,7 @@ const pool = new Pool({
 })
 
 pool.on('connect', (client) => {
-    client.query("SET TIME ZONE 'Europe/Zagreb'").catch(err => console.error('Error setting time zone', err));
+    client.query("SET TIME ZONE 'Asia/Shanghai'").catch(err => console.error('Error setting time zone', err));
     console.log('Connected to the database');
 })
 

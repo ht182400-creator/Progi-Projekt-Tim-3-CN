@@ -18,12 +18,12 @@ export function Profile() {
     const [reviewsLoading, setReviewsLoading] = useState(false);
 
     const interestMap = {
-        mat_os: "Matematika Osnovna Škola",
-        fiz_os: "Fizika Osnovna Škola",
-        inf_os: "Informatika Osnovna Škola",
-        mat_ss: "Matematika Srednja Škola",
-        fiz_ss: "Fizika Srednja Škola",
-        inf_ss: "Informatika Srednja Škola"
+        mat_os: "小学数学",
+        fiz_os: "小学物理",
+        inf_os: "小学信息学",
+        mat_ss: "中学数学",
+        fiz_ss: "中学物理",
+        inf_ss: "中学信息学"
     };
 
     const reverseInterestMap = Object.fromEntries(
@@ -61,9 +61,9 @@ export function Profile() {
             await axios.post("/profile/interests", {
                 interests: interests.map(i => interestMap[i])
             });
-            showMessage("Interesi uspješno spremljeni! ✓");
+            showMessage("兴趣已成功保存！ ✓");
         } catch {
-            setError("Greška kod spremanja interesa");
+            setError("保存兴趣时出错");
         } finally {
             setSaving(false);
         }
@@ -123,7 +123,7 @@ export function Profile() {
                     });
                 }
             } catch (err) {
-                console.error("Error fetching rating:", err);
+                console.error("获取评分时出错:", err);
             }
         };
         fetchRating();
@@ -165,7 +165,7 @@ export function Profile() {
             }
 
         } catch (err) {
-            setError(err.response?.data?.message || "Greška kod dohvata podataka");
+            setError(err.response?.data?.message || "获取数据时出错");
         } finally {
             setLoading(false);
         }
@@ -181,7 +181,7 @@ export function Profile() {
         setSaving(true);
 
         if (!form.name || !form.surname || !form.date_of_birth) {
-            setError("Molimo ispunite polja Ime, Prezime i Datum rođenja.");
+            setError("请填写姓名和出生日期。");
             setSaving(false);
             return;
         }
@@ -198,9 +198,9 @@ export function Profile() {
                 education: form.education,
                 teaching: form.teaching
             });
-            showMessage("Promjene uspješno spremljene! ✓");
+            showMessage("更改已成功保存！ ✓");
         } catch (err) {
-            setError(err.response?.data?.message || "Greška kod spremanja");
+            setError(err.response?.data?.message || "保存时出错");
         } finally {
             setSaving(false);
         }
@@ -212,9 +212,9 @@ export function Profile() {
 
         try {
             await axios.post("/profile/public", publicProfile);
-            showMessage("Javni profil spremljen! ✓");
+            showMessage("公开资料已保存！ ✓");
         } catch {
-            setError("Greška kod spremanja javnog profila");
+            setError("保存公开资料时出错");
         } finally {
             setSaving(false);
         }
@@ -222,15 +222,15 @@ export function Profile() {
 
     const handleImageUpdated = (newFilename) => {
         setForm(prev => ({ ...prev, profile_picture: newFilename }));
-        showMessage("Slika profila ažurirana! ✓");
+        showMessage("头像已更新！ ✓");
     };
 
     const tabs = [
-        { id: "osobni", icon: "👤", label: "Osobni podaci", desc: "Osnovne informacije" },
-        { id: "interesi", icon: "⭐", label: "Interesi", desc: "Područja učenja" },
+        { id: "osobni", icon: "👤", label: "个人信息", desc: "基本信息" },
+        { id: "interesi", icon: "⭐", label: "兴趣", desc: "学习领域" },
         ...(form.is_professor ? [
-            { id: "javni", icon: "🌍", label: "Javni profil", desc: "Vidljivo drugima" },
-            { id: "recenzije", icon: "📝", label: "Recenzije", desc: "Ocjene studenata" }
+            { id: "javni", icon: "🌍", label: "公开资料", desc: "对他人的可见信息" },
+            { id: "recenzije", icon: "📝", label: "评论", desc: "学生评分" }
         ] : [])
     ];
 
@@ -238,7 +238,7 @@ export function Profile() {
         return (
             <div className={styles.loadingPage}>
                 <div className={styles.spinner}></div>
-                <p>Učitavanje profila...</p>
+                <p>加载个人资料...</p>
             </div>
         );
     }
@@ -266,7 +266,7 @@ export function Profile() {
                     <div className={styles.sidebarHeader}>
                         <div className={styles.avatarLarge} onClick={() => setIsImageModalOpen(true)}>
                             {form.profile_picture ? (
-                                <img src={getImageUrl(form.profile_picture)} alt="Profil" />
+                                <img src={getImageUrl(form.profile_picture)} alt="个人资料" />
                             ) : (
                                 <div className={styles.avatarPlaceholder}>
                                     <span>{form.name?.[0]}{form.surname?.[0]}</span>
@@ -278,13 +278,13 @@ export function Profile() {
                         </div>
                         <h2>{form.name} {form.surname}</h2>
                         <span className={styles.roleBadge}>
-                            {form.is_professor ? "👨‍🏫 Instruktor" : "🎓 Student"}
+                            {form.is_professor ? "👨‍🏫 导师" : "🎓 学生"}
                         </span>
                         {form.is_professor && (
                             <div className={styles.ratingBadge}>
                                 {instructorRating.count > 0 
-                                    ? `⭐ ${instructorRating.average} (${instructorRating.count} recenzija)`
-                                    : "⭐ Još nema recenzija"
+                                    ? `⭐ ${instructorRating.average} (${instructorRating.count} 条评论)`
+                                    : "⭐ 暂无评论"
                                 }
                             </div>
                         )}
@@ -309,36 +309,36 @@ export function Profile() {
 
                 {/* Content */}
                 <main className={styles.content}>
-                    {/* Osobni podaci */}
+                    {/* 个人信息 */}
                     {activeTab === "osobni" && (
                         <div className={styles.section}>
                             <div className={styles.sectionHeader}>
-                                <h1>👤 Osobni podaci</h1>
-                                <p>Upravljajte svojim osnovnim informacijama</p>
+                                <h1>👤 个人信息</h1>
+                                <p>管理您的基本信息</p>
                             </div>
 
                             <form className={styles.form} onSubmit={saveChanges}>
                                 <div className={styles.formGrid}>
                                     <div className={styles.field}>
-                                        <label>Ime</label>
+                                        <label>名字</label>
                                         <input 
                                             value={form.name} 
                                             onChange={e => updateField("name", e.target.value)}
-                                            placeholder="Vaše ime"
+                                            placeholder="您的名字"
                                         />
                                     </div>
 
                                     <div className={styles.field}>
-                                        <label>Prezime</label>
+                                        <label>姓氏</label>
                                         <input 
                                             value={form.surname} 
                                             onChange={e => updateField("surname", e.target.value)}
-                                            placeholder="Vaše prezime"
+                                            placeholder="您的姓氏"
                                         />
                                     </div>
 
                                     <div className={styles.field}>
-                                        <label>📅 Datum rođenja</label>
+                                        <label>📅 出生日期</label>
                                         <input 
                                             type="date" 
                                             value={form.date_of_birth}
@@ -347,45 +347,45 @@ export function Profile() {
                                     </div>
 
                                     <div className={styles.field}>
-                                        <label>⚧ Spol</label>
+                                        <label>⚧ 性别</label>
                                         <select
                                             value={form.sex}
                                             onChange={e => updateField("sex", e.target.value)}
                                         >
-                                            <option value="">Odaberi</option>
-                                            <option value="M">Muško</option>
-                                            <option value="F">Žensko</option>
-                                            <option value="X">Ostalo / Ne želim reći</option>
+                                            <option value="">选择</option>
+                                            <option value="M">男</option>
+                                            <option value="F">女</option>
+                                            <option value="X">其他 / 不愿透露</option>
                                         </select>
                                     </div>
 
                                     <div className={styles.field}>
-                                        <label>📍 Mjesto / Grad</label>
+                                        <label>📍 地点 / 城市</label>
                                         <input 
                                             value={form.city} 
                                             onChange={e => updateField("city", e.target.value)}
-                                            placeholder="npr. Zagreb"
+                                            placeholder="例如 萨格勒布"
                                         />
                                     </div>
 
                                     {!form.is_professor && (
                                         <div className={styles.field}>
-                                            <label>🏫 Škola / Fakultet</label>
+                                            <label>🏫 学校 / 学院</label>
                                             <input 
                                                 value={form.education}
                                                 onChange={e => updateField("education", e.target.value)}
-                                                placeholder="Naziv obrazovne ustanove"
+                                                placeholder="教育机构名称"
                                             />
                                         </div>
                                     )}
 
                                     {form.is_professor && (
                                         <div className={styles.field}>
-                                            <label>🎓 Edukacija / Stručna sprema</label>
+                                            <label>🎓 教育 / 专业资格</label>
                                             <input 
                                                 value={form.teaching}
                                                 onChange={e => updateField("teaching", e.target.value)}
-                                                placeholder="npr. Magistar matematike"
+                                                placeholder="例如 数学硕士"
                                             />
                                         </div>
                                     )}
@@ -393,21 +393,21 @@ export function Profile() {
 
                                 <button type="submit" className={styles.saveBtn} disabled={saving}>
                                     {saving ? (
-                                        <><span className={styles.btnSpinner}></span> Spremanje...</>
+                                        <><span className={styles.btnSpinner}></span> 保存中...</>
                                     ) : (
-                                        "💾 Spremi promjene"
+                                        "💾 保存更改"
                                     )}
                                 </button>
                             </form>
                         </div>
                     )}
 
-                    {/* Interesi */}
+                    {/* 兴趣 */}
                     {activeTab === "interesi" && (
                         <div className={styles.section}>
                             <div className={styles.sectionHeader}>
-                                <h1>⭐ Osobni interesi</h1>
-                                <p>Odaberite predmete koji vas zanimaju</p>
+                                <h1>⭐ 个人兴趣</h1>
+                                <p>选择您感兴趣的科目</p>
                             </div>
 
                             <div className={styles.interestsGrid}>
@@ -428,7 +428,7 @@ export function Profile() {
 
                             <div className={styles.interestsFooter}>
                                 <span className={styles.selectedCount}>
-                                    {interests.length} odabrano
+                                    {interests.length} 已选择
                                 </span>
                                 <button
                                     className={styles.saveBtn}
@@ -436,36 +436,36 @@ export function Profile() {
                                     disabled={saving}
                                 >
                                     {saving ? (
-                                        <><span className={styles.btnSpinner}></span> Spremanje...</>
+                                        <><span className={styles.btnSpinner}></span> 保存中...</>
                                     ) : (
-                                        "💾 Spremi interese"
+                                        "💾 保存兴趣"
                                     )}
                                 </button>
                             </div>
                         </div>
                     )}
 
-                    {/* Javni profil */}
+                    {/* 公开资料 */}
                     {activeTab === "javni" && (
                         <div className={styles.section}>
                             <div className={styles.sectionHeader}>
-                                <h1>🌍 Javni profil</h1>
-                                <p>Informacije vidljive studentima koji traže instruktore</p>
+                                <h1>🌍 公开资料</h1>
+                                <p>信息对寻找导师的学生可见</p>
                             </div>
 
                             <div className={styles.publicForm}>
                                 <div className={styles.field}>
-                                    <label>📝 Biografija</label>
+                                    <label>📝 个人简介</label>
                                     <textarea
                                         value={publicProfile.biography}
                                         onChange={e => setPublicProfile(p => ({ ...p, biography: e.target.value }))}
-                                        placeholder="Opišite svoje iskustvo, pristup podučavanju i zašto ste dobar izbor za studente..."
+                                        placeholder="描述您的经验、教学方式以及为什么您是学生的最佳选择..."
                                         rows={4}
                                     />
                                 </div>
 
                                 <div className={styles.field}>
-                                    <label>🎬 Video prezentacija (YouTube link)</label>
+                                    <label>🎬 视频介绍 (YouTube 链接)</label>
                                     <input
                                         value={publicProfile.video_url}
                                         onChange={e => setPublicProfile(p => ({ ...p, video_url: e.target.value }))}
@@ -474,35 +474,35 @@ export function Profile() {
                                 </div>
 
                                 <div className={styles.field}>
-                                    <label>🏆 Reference</label>
+                                    <label>🏆 资质与荣誉</label>
                                     <textarea
                                         value={publicProfile.reference}
                                         onChange={e => setPublicProfile(p => ({ ...p, reference: e.target.value }))}
-                                        placeholder="Navedite svoje kvalifikacije, certifikate, uspjehe učenika..."
+                                        placeholder="列出您的资格证书、证书、学生的成功案例..."
                                         rows={3}
                                     />
                                 </div>
 
                                 <div className={styles.formRow}>
-                                    {/* Način predavanja */}
+                                    {/* 授课方式 */}
                                     <div className={styles.field}>
-                                        <label>💻 Način predavanja</label>
+                                        <label>💻 授课方式</label>
                                         <select
                                             value={publicProfile.teaching_type}
                                             onChange={e =>
                                                 setPublicProfile(p => ({ ...p, teaching_type: e.target.value }))
                                             }
                                         >
-                                            <option value="">Odaberi</option>
-                                            <option value="Uživo">🏫 Uživo</option>
-                                            <option value="Online">💻 Online</option>
-                                            <option value="Uživo i Online">🏫💻 Uživo i Online</option>
+                                            <option value="">选择</option>
+                                            <option value="线下">🏫 线下</option>
+                                            <option value="在线">💻 在线</option>
+                                            <option value="线下和线上">🏫💻 线下和线上</option>
                                         </select>
                                     </div>
 
-                                    {/* Objavi profil */}
+                                    {/* 发布资料 */}
                                     <div className={styles.fieldPublish}>
-                                        <label>&nbsp;</label> {/* prazni label za poravnanje */}
+                                        <label>&nbsp;</label> {/* 用于对齐的空标签 */}
                                         <button
                                             type="button"
                                             className={`${styles.publishBtn} ${publicProfile.is_published ? styles.published : ""}`}
@@ -511,13 +511,13 @@ export function Profile() {
                                                 try {
                                                     await axios.post("/profile/public/publish", { publish: newState });
                                                     setPublicProfile(p => ({ ...p, is_published: newState }));
-                                                    showMessage(newState ? "Profil objavljen!" : "Profil skriven!");
+                                                    showMessage(newState ? "资料已发布！" : "资料已隐藏！");
                                                 } catch {
-                                                    showMessage("Greška kod promjene statusa publikacije");
+                                                    showMessage("更改发布状态时出错");
                                                 }
                                             }}
                                         >
-                                            {publicProfile.is_published ? "✅ Objavljen" : "❌ Skriven"}
+                                            {publicProfile.is_published ? "✅ 已发布" : "❌ 已隐藏"}
                                         </button>
                                     </div>
                                 </div>
@@ -528,27 +528,27 @@ export function Profile() {
                                     disabled={saving}
                                 >
                                     {saving ? (
-                                        <><span className={styles.btnSpinner}></span> Spremanje...</>
+                                        <><span className={styles.btnSpinner}></span> 保存中...</>
                                     ) : (
-                                        "💾 Spremi javni profil"
+                                        "💾 保存公开资料"
                                     )}
                                 </button>
                             </div>
                         </div>
                     )}
 
-                    {/* Recenzije (for professors) */}
+                    {/* 评论（仅导师） */}
                     {activeTab === "recenzije" && (
                         <div className={styles.section}>
                             <div className={styles.sectionHeader}>
-                                <h1>📝 Moje recenzije</h1>
-                                <p>Ocjene i komentari od vaših studenata</p>
+                                <h1>📝 我的评论</h1>
+                                <p>来自学生的评分和评论</p>
                             </div>
 
                             {reviewsLoading ? (
                                 <div className={styles.loadingPage}>
                                     <div className={styles.spinner}></div>
-                                    <p>Učitavanje recenzija...</p>
+                                    <p>加载评论中...</p>
                                 </div>
                             ) : (
                                 <>
@@ -558,15 +558,15 @@ export function Profile() {
                                             <span className={styles.ratingStar}>⭐</span>
                                         </div>
                                         <div className={styles.reviewCount}>
-                                            {instructorRating.count} {instructorRating.count === 1 ? "recenzija" : "recenzija"}
+                                            {instructorRating.count} 条评论
                                         </div>
                                     </div>
 
                                     {myReviews.length === 0 ? (
                                         <div className={styles.comingSoon}>
                                             <div className={styles.comingSoonIcon}>📭</div>
-                                            <h3>Još nemate recenzija</h3>
-                                            <p>Kad studenti ocijene vaše usluge, recenzije će se prikazati ovdje.</p>
+                                            <h3>暂无评价</h3>
+                                            <p>当学生对您的服务进行评分时，评论将显示在这里。</p>
                                         </div>
                                     ) : (
                                         <div className={styles.reviewsList}>
@@ -604,7 +604,7 @@ export function Profile() {
                                                         <p className={styles.reviewComment}>{review.comment}</p>
                                                     )}
                                                     <div className={styles.reviewDate}>
-                                                        {new Date(review.created_at).toLocaleDateString("hr-HR", {
+                                                        {new Date(review.created_at).toLocaleDateString("zh-CN", {
                                                             day: "numeric",
                                                             month: "long",
                                                             year: "numeric"

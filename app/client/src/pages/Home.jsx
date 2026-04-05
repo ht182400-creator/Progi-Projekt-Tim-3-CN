@@ -36,32 +36,33 @@ export default function Home() {
             {/* HERO */}
             <section className={styles.hero}>
                 <div className={styles.heroInner}>
-                    <p className={styles.kicker}>DOBRO DOŠLI</p>
+                    <p className={styles.kicker}>欢迎</p>
                     <h1 className={styles.title}>
-                        Dobro došli na <span>FerTutor</span>
+                    欢迎来到 <span>FerTutor</span>
                     </h1>
                     <p className={styles.subtitle}>
-                        Jednostavan put do boljih ocjena uz provjerene instruktore – online ili uživo.
+                    通过经过验证的导师——在线或线下——轻松获得更好成绩。
                     </p>
 
                     <div className={styles.heroActions}>
                         <button className={styles.primaryBtn} onClick={() => navigate("/instructors")}>
-                            Pronađi instruktora
+                            寻找导师
                         </button>
                         <button className={styles.secondaryBtn} onClick={() => navigate("/quizzes")}>
-                            Riješi kvizove
+                            做测验
                         </button>
                     </div>
                 </div>
             </section>
 
-            {/* PROCESS */}
+            {/* 流程S */}
             <section className={styles.section}>
                 <div className={styles.sectionHeader}>
-                    <p className={styles.sectionKicker}>PROCES</p>
-                    <h2 className={styles.sectionTitle}>Kako FerTutor funkcionira?</h2>
+                    <p className={styles.sectionKicker}>流程</p>
+                    <h2 className={styles.sectionTitle}>FerTutor 如何运作？</h2>
                     <p className={styles.sectionSubtitle}>
-                        Jednostavan put do boljih ocjena u samo tri koraka.
+                    只需三步即可轻松获得更好成绩.
+
                     </p>
                 </div>
 
@@ -79,8 +80,8 @@ export default function Home() {
                                 />
                             </svg>
                         </div>
-                        <h3>Pronađi instruktora</h3>
-                        <p>Pretraži bazu provjerenih instruktora prema predmetu, cijeni ili ocjenama.</p>
+                        <h3>寻找导师</h3>
+                        <p>按科目、价格或评分搜索验证过的导师.</p>
                     </div>
 
                     <div className={styles.stepCard}>
@@ -97,8 +98,9 @@ export default function Home() {
                                 <path d="M9 13h2v2H9zm4 0h2v2h-2z" fill="currentColor" />
                             </svg>
                         </div>
-                        <h3>Rezerviraj termin</h3>
-                        <p>Odaberi vrijeme koje ti odgovara i rezerviraj termin direktno putem platforme.</p>
+                        <h3>预约时间</h3>
+                        <p>    选择适合你的时间，直接通过平台预约。
+                        </p>
                     </div>
 
                     <div className={styles.stepCard}>
@@ -121,8 +123,8 @@ export default function Home() {
                                 />
                             </svg>
                         </div>
-                        <h3>Počni učiti</h3>
-                        <p>Spoji se online ili uživo i savladaj gradivo uz pomoć stručnjaka.</p>
+                        <h3>开始学习</h3>
+                        <p>在线或线下与专家一起学习并掌握知识.</p>
                     </div>
                 </div>
             </section>
@@ -130,14 +132,14 @@ export default function Home() {
             {/* RECOMMENDED */}
             <section className={styles.sectionAlt}>
                 <div className={styles.sectionHeader}>
-                    <h2 className={styles.sectionTitle}>Preporučeni instruktori</h2>
+                    <h2 className={styles.sectionTitle}>推荐导师</h2>
                     <p className={styles.sectionSubtitle}>
-                        Pronađi stručnjaka koji odgovara tvom stilu učenja.
+                    找到适合你学习风格的专家。
                     </p>
                 </div>
 
                 {loading ? (
-                    <div className={styles.loading}>Učitavam preporuke...</div>
+                    <div className={styles.loading}>加载推荐...</div>
                 ) : (
                     <div className={styles.cardsGrid}>
                         {recommended.map((i) => (
@@ -160,7 +162,7 @@ export default function Home() {
                                             <h3 className={styles.name}>
                                                 {i.name} {i.surname}
                                             </h3>
-                                            <span className={styles.verifiedDot} title="Provjeren instruktor" />
+                                            <span className={styles.verifiedDot} title="已验证导师" />
                                         </div>
 
                                         <p className={styles.subject}>{i.primary_subject || i.subject || "Instrukcije"}</p>
@@ -173,12 +175,12 @@ export default function Home() {
 
                                     <div className={styles.priceBlock}>
                                         <div className={styles.price}>€{i.min_price ?? i.price ?? "--"}</div>
-                                        <div className={styles.priceSub}>po satu</div>
+                                        <div className={styles.priceSub}>每小时</div>
                                     </div>
                                 </div>
 
                                 <p className={styles.desc}>
-                                    {i.bio || "Strpljiv pristup i jasna objašnjenja. Rezerviraj termin i kreni učiti."}
+                                    {i.bio || "耐心的讲解和清晰的解释。预约时间，开始学习。"}
                                 </p>
 
                                 <div className={styles.tagsRow}>
@@ -201,7 +203,7 @@ export default function Home() {
                                             navigate(`/instructors/${i.id}`);
                                         }}
                                     >
-                                        Rezerviraj
+                                        预约
                                     </button>
                                 </div>
                             </div>
@@ -211,29 +213,28 @@ export default function Home() {
 
                 <div className={styles.loadMoreWrap}>
                     <button className={styles.loadMoreBtn} onClick={() => navigate("/instructors")}>
-                        Učitaj više instruktora
+                        加载更多导师
                     </button>
                 </div>
             </section>
             {/* TESTIMONIALS */}
             <section className={styles.testimonialsSection}>
                 <div className={styles.sectionHeader}>
-                    <h2 className={styles.sectionTitle}>Što kažu naši korisnici</h2>
+                    <h2 className={styles.sectionTitle}>用户评价</h2>
                 </div>
 
                 <div className={styles.testimonialsGrid}>
                     <div className={styles.testimonialCard}>
                         <div className={styles.quoteMark}>”</div>
                         <p className={styles.testimonialText}>
-                            Zahvaljujući FerTutoru našao sam instruktora iz matematike u jednom danu i napokon
-                            pohvatao gradivo za maturu. Sve je jasno, brzo i bez stresa.
+                          感谢 FerTutor,我在一天之内就找到了一位数学导师，终于掌握了高考的课程内容。一切都很清晰、快速且没有压力。
                         </p>
 
                         <div className={styles.testimonialFooter}>
                             <div className={styles.initialAvatar}>IP</div>
                             <div>
                                 <div className={styles.testimonialName}>Ivan P.</div>
-                                <div className={styles.testimonialRole}>Maturant</div>
+                                <div className={styles.testimonialRole}>高中毕业生</div>
                             </div>
                         </div>
                     </div>
@@ -241,15 +242,14 @@ export default function Home() {
                     <div className={styles.testimonialCard}>
                         <div className={styles.quoteMark}>”</div>
                         <p className={styles.testimonialText}>
-                            Platforma je stvarno jednostavna za korištenje. Rezervirala sam online termin i
-                            riješila probleme iz programiranja koje sam vukla tjednima.
+                            这个平台真的很容易使用。我预约了一个在线课程，解决了我拖了好几周的程序设计问题。
                         </p>
 
                         <div className={styles.testimonialFooter}>
                             <div className={styles.initialAvatar}>MK</div>
                             <div>
                                 <div className={styles.testimonialName}>Maja K.</div>
-                                <div className={styles.testimonialRole}>Studentica FER-a</div>
+                                <div className={styles.testimonialRole}>FER 学生</div>
                             </div>
                         </div>
                     </div>
@@ -257,15 +257,14 @@ export default function Home() {
                     <div className={styles.testimonialCard}>
                         <div className={styles.quoteMark}>”</div>
                         <p className={styles.testimonialText}>
-                            Odličan izbor instruktora i sve je transparentno. Djeca su napokon dobila rutinu, a
-                            ja imam mir jer znam da rade s provjerenim ljudima.
+                            导师选择很棒，一切都很透明。孩子们终于有了规律，而我也安心了，因为我知道他们和经过验证的人一起学习。
                         </p>
 
                         <div className={styles.testimonialFooter}>
                             <div className={styles.initialAvatar}>TR</div>
                             <div>
                                 <div className={styles.testimonialName}>Tomislav R.</div>
-                                <div className={styles.testimonialRole}>Roditelj</div>
+                                <div className={styles.testimonialRole}>家长</div>
                             </div>
                         </div>
                     </div>

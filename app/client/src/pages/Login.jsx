@@ -29,7 +29,7 @@ function Login() {
             setUser(res.data.user);
             navigate('/');
         } catch (err) {
-            setError(err.response?.data?.message || 'Greška pri prijavi.');
+            setError(err.response?.data?.message || '注册错误');
         } finally {
             setLoading(false);
         }
@@ -44,17 +44,17 @@ function Login() {
         console.log('Google login clicked - OAuth not implemented');
     };
 
-    const infoText = "Prijavite se i otključajte sljedeći korak u svom učenju personalizirano, fleksibilno i vođeno vašim tempom.";
+    const infoText = "登录并解锁你学习中的下一步——个性化、灵活且由你的节奏主导。";
 
     return (
         <AuthLayout infoText={infoText} infoImage={slikaProfesora}>
             <div className={styles.formContainer}>
-                <h2>Prijava</h2>
+                <h2>登录</h2>
                 <form onSubmit={handleSubmit}>
                     <Input
                         icon={EmailIcon}
                         type="email"
-                        placeholder="Email Adresa"
+                        placeholder="邮箱地址"
                         value={email}
                         onChange={e => setEmail(e.target.value)}
                         required
@@ -63,7 +63,7 @@ function Login() {
                     <Input
                         rightIcon={showPassword ? EyeIcon : EyeOffIcon}
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="Lozinka"
+                        placeholder="密码"
                         value={password}
                         onChange={e => setPassword(e.target.value)}
                         onRightIconClick={togglePasswordVisibility}
@@ -79,17 +79,17 @@ function Login() {
                                 checked={rememberMe}
                                 onChange={e => setRememberMe(e.target.checked)}
                             />
-                            <label htmlFor="remember">Zapamti prijavu</label>
+                            <label htmlFor="remember">记住登录</label>
                         </div>
                         <Link to="/forgot-password" className={styles.forgotPassword}>
-                            Zaboravili ste lozinku?
+                            忘记密码？
                         </Link>
                     </div>
 
                     {error && <p className={styles.errorMessage}>{error}</p>}
 
                     <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={loading}>
-                        {loading ? 'Prijava...' : 'Prijava'}
+                        {loading ? '登录...' : '登录'}
                     </button>
 
                     <div className={styles.divider}>
@@ -103,9 +103,9 @@ function Login() {
                 </form>
 
                 <div className={styles.signupLink}>
-                    <p>Još nemate račun?</p>
+                    <p>还没有账户？</p>
                     <Link to="/register" className={`${styles.btn} ${styles.btnSecondary}`}>
-                        Registracija
+                        注册
                     </Link>
                 </div>
             </div>

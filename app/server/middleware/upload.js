@@ -28,7 +28,7 @@ const fileFilter = (req, file, cb) => {
     if (mimetype && extname) {
         return cb(null, true);
     } else {
-        cb(new Error('Samo slike su dozvoljene!'));
+        cb(new Error('只允许图片！'));
     }
 };
 
@@ -47,7 +47,7 @@ const compressImage = async (filePath) => {
 
         fs.renameSync(filePath + '.compressed', filePath);
     } catch (err) {
-        console.error('Greška pri kompresiji slike:', err);
+        console.error('压缩图片时出错:', err);
     }
 };
 

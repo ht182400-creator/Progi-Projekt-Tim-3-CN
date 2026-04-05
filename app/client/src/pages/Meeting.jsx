@@ -50,7 +50,7 @@ export default function Meeting() {
             await initializeMedia();
             initializeWebSocket();
         } catch (err) {
-            setError(err.response?.data?.message || "Meeting not found");
+            setError(err.response?.data?.message || "未找到会议");
             setLoading(false);
         }
     };
@@ -67,7 +67,7 @@ export default function Meeting() {
             }
         } catch (err) {
             console.error("Error accessing media devices:", err);
-            setError("Nije moguće pristupiti kameri ili mikrofonu. Provjerite dozvole.");
+            setError("无法访问摄像头或麦克风，请检查权限。");
         }
     };
 
@@ -279,7 +279,7 @@ export default function Meeting() {
 
     const formatTime = (value) => {
         const date = new Date(value);
-        return date.toLocaleTimeString("hr-HR", {
+        return date.toLocaleTimeString("zh-CN", {
             hour: "2-digit",
             minute: "2-digit"
         });
@@ -289,7 +289,7 @@ export default function Meeting() {
         return (
             <div className={styles.loadingPage}>
                 <div className={styles.spinner}></div>
-                <p>Učitavanje meetinga...</p>
+                <p>加载会议中...</p>
             </div>
         );
     }
@@ -297,10 +297,10 @@ export default function Meeting() {
     if (error) {
         return (
             <div className={styles.errorPage}>
-                <h2>Greška</h2>
+                <h2>错误</h2>
                 <p>{error}</p>
                 <button onClick={() => navigate("/calendar")} className={styles.backBtn}>
-                    Povratak na kalendar
+                    返回日历
                 </button>
             </div>
         );
@@ -311,15 +311,15 @@ export default function Meeting() {
             {/* Meeting Header */}
             <header className={styles.header}>
                 <div className={styles.headerInfo}>
-                    <h1>{meeting?.interest_name || "Online sat"}</h1>
+                    <h1>{meeting?.interest_name || "在线课程"}</h1>
                     <p>
-                        {role === "professor" ? "Vi predajete" : `Instruktor: ${meeting?.professor_name} ${meeting?.professor_surname}`}
+                        {role === "professor" ? "您在授课" : `导师：${meeting?.professor_name} ${meeting?.professor_surname}`}
                         {" - "}
                         {meeting && `${formatTime(meeting.start_time)} - ${formatTime(meeting.end_time)}`}
                     </p>
                 </div>
                 <button onClick={leaveMeeting} className={styles.leaveBtn}>
-                    Napusti poziv
+                    离开通话
                 </button>
             </header>
 
@@ -341,9 +341,9 @@ export default function Meeting() {
                                 <p>
                                     {waitingForPeer 
                                         ? (role === "professor" 
-                                            ? "Čekanje studenta..." 
-                                            : "Čekanje instruktora...")
-                                        : "Povezivanje..."
+                                            ? "等待学生..." 
+                                            : "等待导师...")
+                                        : "连接中..."
                                     }
                                 </p>
                             </div>
@@ -362,7 +362,7 @@ export default function Meeting() {
                     />
                     {!isVideoOn && (
                         <div className={styles.videoOffOverlay}>
-                            <span>Kamera isključena</span>
+                            <span>摄像头关闭</span>
                         </div>
                     )}
                 </div>
@@ -373,7 +373,7 @@ export default function Meeting() {
                 <button
                     className={`${styles.controlBtn} ${!isAudioOn ? styles.controlBtnOff : ""}`}
                     onClick={toggleAudio}
-                    title={isAudioOn ? "Isključi mikrofon" : "Uključi mikrofon"}
+                    title={isAudioOn ? "关闭麦克风" : "开启麦克风"}
                 >
                     {isAudioOn ? "🎤" : "🔇"}
                 </button>
@@ -381,7 +381,7 @@ export default function Meeting() {
                 <button
                     className={`${styles.controlBtn} ${!isVideoOn ? styles.controlBtnOff : ""}`}
                     onClick={toggleVideo}
-                    title={isVideoOn ? "Isključi kameru" : "Uključi kameru"}
+                    title={isVideoOn ? "关闭摄像头" : "开启摄像头"}
                 >
                     {isVideoOn ? "📹" : "📷"}
                 </button>
@@ -389,7 +389,7 @@ export default function Meeting() {
                 <button
                     className={`${styles.controlBtn} ${styles.endCallBtn}`}
                     onClick={leaveMeeting}
-                    title="Napusti poziv"
+                    title="离开通话"
                 >
                     📞
                 </button>

@@ -38,7 +38,7 @@ export default function Gugugaga() {
                 <img
                     key={img.id}
                     src="/secret/gugugaga.jpg"
-                    alt="spinning chaos"
+                    alt="旋转混乱"
                     className={styles.spinningImage}
                     draggable={false}
                     style={{

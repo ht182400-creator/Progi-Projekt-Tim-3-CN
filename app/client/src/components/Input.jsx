@@ -42,7 +42,7 @@ function Input({
                     className={styles.rightIconButton}
                     onClick={onRightIconClick}
                     tabIndex={-1}
-                    aria-label="Toggle password visibility"
+                    aria-label="切换密码可见性"
                 >
                     {typeof RightIconComponent === 'function' ? <RightIconComponent size={18} /> : RightIconComponent}
                 </button>

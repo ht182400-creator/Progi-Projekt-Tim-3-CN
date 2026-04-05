@@ -30,12 +30,12 @@ export default function CreateQuiz() {
     });
 
     const interestsList = [
-        { id: 1, name: "Matematika Osnovna Škola" },
-        { id: 2, name: "Fizika Osnovna Škola" },
-        { id: 3, name: "Informatika Osnovna Škola" },
-        { id: 4, name: "Matematika Srednja Škola" },
-        { id: 5, name: "Fizika Srednja Škola" },
-        { id: 6, name: "Informatika Srednja Škola" }
+        { id: 1, name: "小学数学" },
+        { id: 2, name: "小学物理" },
+        { id: 3, name: "小学信息学" },
+        { id: 4, name: "中学数学" },
+        { id: 5, name: "中学物理" },
+        { id: 6, name: "中学信息学" }
     ];
 
     const answerColors = ["red", "blue", "yellow", "green"];
@@ -43,8 +43,8 @@ export default function CreateQuiz() {
     if (!user?.is_professor) {
         return (
             <div className={styles.page}>
-                <h1>Pristup odbijen</h1>
-                <p>Samo profesori mogu kreirati kvizove.</p>
+                <h1>访问被拒绝</h1>
+                <p>只有教师可以创建测验.</p>
             </div>
         );
     }
@@ -114,7 +114,7 @@ export default function CreateQuiz() {
                 throw new Error("Naslov je obavezan.");
             }
             if (!quiz.interest_id) {
-                throw new Error("Odaberite predmet.");
+                throw new Error("选择te predmet.");
             }
 
             for (let i = 0; i < quiz.questions.length; i++) {
@@ -153,9 +153,9 @@ export default function CreateQuiz() {
         <div className={styles.page}>
             <div className={styles.container}>
             <div className={styles.header}>
-                <h1>Kreiraj novi kviz</h1>
+                <h1>创建新测验</h1>
                 <button className={styles.backBtn} onClick={() => navigate("/quizzes")}>
-                    ← Natrag
+                    ← 返回
                 </button>
             </div>
 
@@ -163,42 +163,42 @@ export default function CreateQuiz() {
                 {error && <div className={styles.error}>{error}</div>}
 
                 <div className={styles.section}>
-                    <h2>Osnovne informacije</h2>
+                    <h2>基本信息</h2>
                     <div className={styles.formGroup}>
-                        <label>Naslov kviza *</label>
+                        <label>测验标题 *</label>
                         <input
                             type="text"
                             value={quiz.title}
                             onChange={e => setQuiz(q => ({ ...q, title: e.target.value }))}
-                            placeholder="npr. Matematika - Kvadratne jednadžbe"
+                            placeholder="例如. 数学 - 二次方程"
                             maxLength={200}
                         />
                     </div>
                     <div className={styles.formGroup}>
-                        <label>Opis (opcionalno)</label>
+                        <label>描述 (可选)</label>
                         <textarea
                             value={quiz.description}
                             onChange={e => setQuiz(q => ({ ...q, description: e.target.value }))}
-                            placeholder="Kratki opis kviza..."
+                            placeholder="测验简短描述..."
                             maxLength={500}
                             rows={3}
                         />
                     </div>
                     <div className={styles.formRow}>
                         <div className={styles.formGroup}>
-                            <label>Predmet *</label>
+                            <label>科目 *</label>
                             <select
                                 value={quiz.interest_id}
                                 onChange={e => setQuiz(q => ({ ...q, interest_id: e.target.value }))}
                             >
-                                <option value="">Odaberi predmet</option>
+                                <option value="">选择 predmet</option>
                                 {interestsList.map(i => (
                                     <option key={i.id} value={i.id}>{i.name}</option>
                                 ))}
                             </select>
                         </div>
                         <div className={styles.formGroup}>
-                            <label>Vrijeme po pitanju (sekunde)</label>
+                            <label>每题时间 (秒)</label>
                             <input
                                 type="number"
                                 value={quiz.time_limit}
@@ -211,7 +211,7 @@ export default function CreateQuiz() {
                 </div>
 
                 <div className={styles.questionsSection}>
-                    <h2>Pitanja</h2>
+                    <h2>问题</h2>
                     
                     {quiz.questions.map((question, qIndex) => (
                         <div key={qIndex} className={styles.questionCard}>
@@ -233,7 +233,7 @@ export default function CreateQuiz() {
                                     type="text"
                                     value={question.question_text}
                                     onChange={e => updateQuestion(qIndex, "question_text", e.target.value)}
-                                    placeholder="Upiši pitanje..."
+                                    placeholder="输入问题..."
                                     className={styles.questionInput}
                                     maxLength={500}
                                 />
@@ -266,7 +266,7 @@ export default function CreateQuiz() {
                             </div>
 
                             <div className={styles.pointsRow}>
-                                <label>Bodovi za ovo pitanje:</label>
+                                <label>分数 za ovo pitanje:</label>
                                 <input
                                     type="number"
                                     value={question.points}

@@ -23,9 +23,9 @@ CREATE TABLE students (
 );
 
 CREATE TYPE teaching_type_enum AS ENUM (
-    'Uživo',
-    'Online',
-    'Uživo i Online'
+    '线下',
+    '线上',
+    '线下和线上'
 );
 
 CREATE TABLE professors (
@@ -45,8 +45,8 @@ CREATE TABLE professors (
 );
 
 CREATE TYPE lesson_type_enum AS ENUM (
-    '1na1',
-    'Grupno'
+    '一对一',
+    '集体课'
 );
 
 CREATE TABLE interests (
@@ -55,12 +55,12 @@ CREATE TABLE interests (
 );
 
 INSERT INTO interests (name) VALUES
-                                 ('Matematika Osnovna Škola'),
-                                 ('Fizika Osnovna Škola'),
-                                 ('Informatika Osnovna Škola'),
-                                 ('Matematika Srednja Škola'),
-                                 ('Fizika Srednja Škola'),
-                                 ('Informatika Srednja Škola');
+                                 ('小学数学'),
+                                 ('小学物理'),
+                                 ('小学信息学'),
+                                 ('中学数学'),
+                                 ('中学物理'),
+                                 ('中学信息学');
 
 CREATE TABLE user_interests (
                                 user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -78,25 +78,25 @@ CREATE TABLE professor_slots (
         teaching_type teaching_type_enum NOT NULL,
         price NUMERIC(10,2) NOT NULL,
         location VARCHAR(150),
-        lesson_type lesson_type_enum NOT NULL DEFAULT '1na1',
+        lesson_type lesson_type_enum NOT NULL DEFAULT '一对一',
         interest_id INT REFERENCES interests(id),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         meeting_url VARCHAR(255),
         meeting_password VARCHAR(20),
         CHECK (end_time > start_time),
         CHECK (
-        teaching_type <> 'Uživo'
+        teaching_type <> '线下'
         OR location IS NOT NULL
         ),
         CHECK (
-            (lesson_type = '1na1' AND capacity = 1)
+            (lesson_type = '一对一' AND capacity = 1)
                 OR
-            (lesson_type = 'Grupno' AND capacity >= 2)
+            (lesson_type = '集体课' AND capacity >= 2)
         ),
         CHECK (
-            (lesson_type = '1na1' AND interest_id IS NULL)
+            (lesson_type = '一对一' AND interest_id IS NULL)
                 OR
-            (lesson_type = 'Grupno' AND interest_id IS NOT NULL)
+            (lesson_type = '集体课' AND interest_id IS NOT NULL)
         )
 );
 

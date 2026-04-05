@@ -15,12 +15,12 @@ export default function Quizzes() {
     const [loading, setLoading] = useState(true);
 
     const interestsList = [
-        { id: 1, name: "Matematika Osnovna Škola" },
-        { id: 2, name: "Fizika Osnovna Škola" },
-        { id: 3, name: "Informatika Osnovna Škola" },
-        { id: 4, name: "Matematika Srednja Škola" },
-        { id: 5, name: "Fizika Srednja Škola" },
-        { id: 6, name: "Informatika Srednja Škola" }
+        { id: 1, name: "小学数学" },
+        { id: 2, name: "小学物理" },
+        { id: 3, name: "小学信息学" },
+        { id: 4, name: "中学数学" },
+        { id: 5, name: "中学物理" },
+        { id: 6, name: "中学信息学" }
     ];
 
     useEffect(() => {
@@ -94,8 +94,8 @@ export default function Quizzes() {
     return (
         <div className={styles.page}>
             <div className={styles.header}>
-                <h1>Kvizovi</h1>
-                <p>Testiraj svoje znanje uz zabavne kvizove!</p>
+                <h1>测验</h1>
+                <p>通过有趣的测验测试你的知识！</p>
             </div>
 
             {user && (
@@ -104,7 +104,7 @@ export default function Quizzes() {
                         className={activeTab === "all" ? styles.activeTab : ""} 
                         onClick={() => setActiveTab("all")}
                     >
-                        Svi kvizovi
+                        所有测验
                     </button>
                     {user.is_professor ? (
                         <>
@@ -112,13 +112,13 @@ export default function Quizzes() {
                                 className={activeTab === "my" ? styles.activeTab : ""} 
                                 onClick={() => setActiveTab("my")}
                             >
-                                Moji kvizovi
+                                我的测验
                             </button>
                             <button 
                                 className={styles.createBtn}
                                 onClick={() => navigate("/quizzes/create")}
                             >
-                                + Kreiraj kviz
+                                + 创建测验
                             </button>
                         </>
                     ) : (
@@ -126,7 +126,7 @@ export default function Quizzes() {
                             className={activeTab === "results" ? styles.activeTab : ""} 
                             onClick={() => setActiveTab("results")}
                         >
-                            Moji rezultati
+                            我的成绩
                         </button>
                     )}
                 </div>
@@ -136,7 +136,7 @@ export default function Quizzes() {
                 <>
                     <div className={styles.filters}>
                         <input
-                            placeholder="Pretraži kvizove..."
+                            placeholder="搜索测验..."
                             value={filters.search}
                             onChange={e => setFilters(f => ({ ...f, search: e.target.value }))}
                         />
@@ -144,7 +144,7 @@ export default function Quizzes() {
                             value={filters.interest_id}
                             onChange={e => setFilters(f => ({ ...f, interest_id: e.target.value }))}
                         >
-                            <option value="">Svi predmeti</option>
+                            <option value="">所有科目</option>
                             {interestsList.map(i => (
                                 <option key={i.id} value={i.id}>{i.name}</option>
                             ))}
@@ -155,7 +155,7 @@ export default function Quizzes() {
                         {loading ? (
                             <p className={styles.loading}>Učitavanje...</p>
                         ) : quizzes.length === 0 ? (
-                            <p className={styles.empty}>Nema dostupnih kvizova.</p>
+                            <p className={styles.empty}>没有可用的测验.</p>
                         ) : (
                             quizzes.map(q => (
                                 <div key={q.id} className={styles.card} onClick={() => navigate(`/quizzes/${q.id}`)}>
@@ -164,8 +164,8 @@ export default function Quizzes() {
                                     <span className={styles.subject}>{q.interest_name}</span>
                                     {q.description && <p>{q.description}</p>}
                                     <div className={styles.cardMeta}>
-                                        <span>⏱️ {q.time_limit}s po pitanju</span>
-                                        <span>❓ {q.question_count} pitanja</span>
+                                        <span>⏱️ {q.time_limit}s 每题</span>
+                                        <span>❓ {q.question_count} 问题</span>
                                     </div>
                                     <div className={styles.author}>
                                         Autor: {q.professor_name} {q.professor_surname}
@@ -180,7 +180,7 @@ export default function Quizzes() {
             {activeTab === "my" && user?.is_professor && (
                 <div className={styles.grid}>
                     {myQuizzes.length === 0 ? (
-                        <p className={styles.empty}>Nemate kreiranih kvizova.</p>
+                        <p className={styles.empty}>您没有创建的测验.</p>
                     ) : (
                         myQuizzes.map(q => (
                             <div key={q.id} className={styles.card}>
@@ -188,7 +188,7 @@ export default function Quizzes() {
                                 <h3>{q.title}</h3>
                                 <span className={styles.subject}>{q.interest_name}</span>
                                 <div className={styles.cardMeta}>
-                                    <span>❓ {q.question_count} pitanja</span>
+                                    <span>❓ {q.question_count} 问题</span>
                                     <span>👥 {q.attempt_count} pokušaja</span>
                                 </div>
                                 <div className={styles.cardActions}>
@@ -214,7 +214,7 @@ export default function Quizzes() {
             {activeTab === "results" && !user?.is_professor && (
                 <div className={styles.resultsList}>
                     {myResults.length === 0 ? (
-                        <p className={styles.empty}>Još niste riješili nijedan kviz.</p>
+                        <p className={styles.empty}>您尚未解决任何测验.</p>
                     ) : (
                         myResults.map(r => (
                             <div key={r.id} className={styles.resultCard}>

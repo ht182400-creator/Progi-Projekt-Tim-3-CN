@@ -47,11 +47,11 @@ export default function InstructorProfile() {
     });
 
     const monthNames = [
-        "Siječanj", "Veljača", "Ožujak", "Travanj", "Svibanj", "Lipanj",
-        "Srpanj", "Kolovoz", "Rujan", "Listopad", "Studeni", "Prosinac"
+        "一月", "二月", "三月", "四月", "五月", "六月",
+        "七月", "八月", "九月", "十月", "十一月", "十二月"
     ];
 
-    const dayNames = ["Pon", "Uto", "Sri", "Čet", "Pet", "Sub", "Ned"];
+    const dayNames = ["一", "二", "三", "四", "五", "六", "日"];
 
     useEffect(() => {
         axios.get(`/instructors/${id}`).then(res => {
@@ -104,7 +104,7 @@ export default function InstructorProfile() {
                 total_reviews: res.data.total_reviews
             });
         } catch (err) {
-            console.error("Error fetching reviews:", err);
+            console.error("获取评价时出错:", err);
         }
     };
 
@@ -128,7 +128,7 @@ export default function InstructorProfile() {
                 comment: reviewComment
             });
 
-            setReviewMessage("Recenzija uspješno dodana! ✓");
+            setReviewMessage("评价已成功添加！ ✓");
             setShowReviewModal(false);
             setReviewRating(5);
             setReviewComment("");
@@ -136,7 +136,7 @@ export default function InstructorProfile() {
             fetchReviews();
             setTimeout(() => setReviewMessage(""), 4000);
         } catch (err) {
-            setReviewError(err.response?.data?.message || "Greška kod dodavanja recenzije");
+            setReviewError(err.response?.data?.message || "添加评价时出错");
         } finally {
             setReviewSubmitting(false);
         }
@@ -144,7 +144,7 @@ export default function InstructorProfile() {
 
     const formatReviewDate = (dateStr) => {
         const date = new Date(dateStr);
-        return date.toLocaleDateString("hr-HR", {
+        return date.toLocaleDateString("zh-CN", {
             day: "numeric",
             month: "long",
             year: "numeric"
@@ -180,11 +180,11 @@ export default function InstructorProfile() {
         }
     };
 
-    // Minimalna cijena među svim dostupnim terminima instruktora
+    // 导师所有可用时段中的最低价格
     const minSlotPrice = slots
-        .filter(s => Number(s.booked_count || 0) < Number(s.capacity)) // samo dostupni termini
+        .filter(s => Number(s.booked_count || 0) < Number(s.capacity)) // 仅可用时段
         .map(s => s.price)
-        .filter(p => p != null) // ukloni null/undefined
+        .filter(p => p != null)
         .reduce((min, price) => (min === null || price < min ? price : min), null);
 
     const handleBook = async (slotId, note, interest_id) => {
@@ -203,11 +203,11 @@ export default function InstructorProfile() {
                 note,
                 interest_id
             });
-            setBookingMessage("Termin je uspješno rezerviran! ✓");
+            setBookingMessage("时段预约成功！ ✓");
             fetchSlots();
             setTimeout(() => setBookingMessage(""), 4000);
         } catch (err) {
-            setBookingError(err.response?.data?.message || "Greška pri rezervaciji termina.");
+            setBookingError(err.response?.data?.message || "预约时段时出错。");
         } finally {
             setBookingInProgress(null);
         }
@@ -215,7 +215,7 @@ export default function InstructorProfile() {
 
     const formatTime = (value) => {
         const date = new Date(value);
-        return date.toLocaleTimeString("hr-HR", {
+        return date.toLocaleTimeString("zh-CN", {
             hour: "2-digit",
             minute: "2-digit"
         });
@@ -223,7 +223,7 @@ export default function InstructorProfile() {
 
     const formatFullDate = (value) => {
         const date = new Date(value);
-        return date.toLocaleDateString("hr-HR", {
+        return date.toLocaleDateString("zh-CN", {
             weekday: "long",
             day: "numeric",
             month: "long"
@@ -232,7 +232,7 @@ export default function InstructorProfile() {
 
     const formatShortDate = (value) => {
         const date = new Date(value);
-        return date.toLocaleDateString("hr-HR", {
+        return date.toLocaleDateString("zh-CN", {
             day: "numeric",
             month: "short"
         });
@@ -291,7 +291,7 @@ export default function InstructorProfile() {
     const availableSlots = slots.filter(s => {
         const hasFreeSpace = Number(s.booked_count || 0) < Number(s.capacity);
 
-        // ako je student već rezervirao → sakrij samo njemu
+        // 如果学生已经预约了 → 仅对他自己隐藏
         if (s.is_booked_by_me) return false;
 
         return hasFreeSpace;
@@ -334,7 +334,7 @@ export default function InstructorProfile() {
         return (
             <div className={styles.loadingPage}>
                 <div className={styles.spinner}></div>
-                <p>Učitavanje profila...</p>
+                <p>加载个人资料...</p>
             </div>
         );
     }
@@ -352,23 +352,23 @@ export default function InstructorProfile() {
             {showReviewModal && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.modal}>
-                        <h3>⭐ Ocijeni instruktora</h3>
+                        <h3>⭐ 评价导师</h3>
 
                         <div className={styles.modalInfo}>
                             <p>👨‍🏫 {instructor?.name} {instructor?.surname}</p>
                         </div>
 
-                        <label>Ocjena</label>
+                        <label>评分</label>
                         <div className={styles.ratingSelector}>
                             {renderStars(reviewRating, true, setReviewRating)}
                             <span className={styles.ratingText}>{reviewRating}/5</span>
                         </div>
 
-                        <label>Komentar (opcionalno)</label>
+                        <label>评论 (可选)</label>
                         <textarea
                             value={reviewComment}
                             onChange={(e) => setReviewComment(e.target.value)}
-                            placeholder="Opišite svoje iskustvo s instruktorom..."
+                            placeholder="描述您与导师的经历..."
                             maxLength={500}
                         />
                         <div className={styles.charCount}>{reviewComment.length}/500</div>
@@ -385,7 +385,7 @@ export default function InstructorProfile() {
                                     setReviewError("");
                                 }}
                             >
-                                Odustani
+                                取消
                             </button>
 
                             <button
@@ -396,7 +396,7 @@ export default function InstructorProfile() {
                                 {reviewSubmitting ? (
                                     <span className={styles.btnSpinner}></span>
                                 ) : (
-                                    "Objavi recenziju"
+                                    "发表评价"
                                 )}
                             </button>
                         </div>
@@ -407,36 +407,36 @@ export default function InstructorProfile() {
             {showBookingModal && selectedSlot && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.modal}>
-                        <h3>Potvrda rezervacije</h3>
+                        <h3>确认预约</h3>
 
                         <div className={styles.modalInfo}>
                             <p>📅 {formatFullDate(selectedSlot.start_time)}</p>
                             <p>🕐 {formatTime(selectedSlot.start_time)} – {formatTime(selectedSlot.end_time)}</p>
 
-                            {selectedSlot.lesson_type === "1na1" ? (
+                            {selectedSlot.lesson_type === "一对一" ? (
                                 <p>👤 {selectedSlot.lesson_type}</p>
                             ):(
                                 <p>👥 {selectedSlot.lesson_type}</p>
                             )}
-                            {selectedSlot.lesson_type === "Grupno" && selectedSlot.interest_name && (
+                            {selectedSlot.lesson_type === "小组课" && selectedSlot.interest_name && (
                                 <p>📘 {selectedSlot.interest_name}</p>
                             )}
                             <p>🎓 {selectedSlot.teaching_type}</p>
-                            {selectedSlot.teaching_type === "Uživo" && selectedSlot.location && (
+                            {selectedSlot.teaching_type === "线下" && selectedSlot.location && (
                                 <p>📍 {selectedSlot.location}</p>
                             )}
 
                             <p>💰 {selectedSlot.price}€</p>
                         </div>
 
-                        {selectedSlot.lesson_type === "1na1" && (
+                        {selectedSlot.lesson_type === "一对一" && (
                             <>
-                                <label>Predmet</label>
+                                <label>科目</label>
                                 <select
                                     value={selectedInterest}
                                     onChange={(e) => setSelectedInterest(e.target.value)}
                                 >
-                                    <option value="">-- Odaberi predmet --</option>
+                                    <option value="">-- 选择科目 --</option>
                                     {instructor.interests.map(i => (
                                         <option key={i.id} value={i.id}>{i.name}</option>
                                     ))}
@@ -444,11 +444,11 @@ export default function InstructorProfile() {
                             </>
                         )}
 
-                        <label>Bilješka za instruktora</label>
+                        <label>给导师的备注</label>
                         <textarea
                             value={note}
                             onChange={(e) => setNote(e.target.value)}
-                            placeholder="Npr. trebam pomoć oko..."
+                            placeholder="例如，我需要帮助..."
                         />
 
                         <div className={styles.modalActions}>
@@ -456,7 +456,7 @@ export default function InstructorProfile() {
                                 className={styles.cancelBtn}
                                 onClick={() => setShowBookingModal(false)}
                             >
-                                Odustani
+                                取消
                             </button>
 
                             <button
@@ -465,9 +465,9 @@ export default function InstructorProfile() {
                                     setShowBookingModal(false);
                                     setShowPaymentModal(true);
                                 }}
-                                disabled={!selectedInterest && selectedSlot.lesson_type === "1na1"}
+                                disabled={!selectedInterest && selectedSlot.lesson_type === "一对一"}
                             >
-                                Plati i rezerviraj
+                                支付并预约
                             </button>
                         </div>
                     </div>
@@ -477,14 +477,14 @@ export default function InstructorProfile() {
                 <div className={styles.modalOverlay}>
                     <div className={`${styles.modal} ${styles.paymentModal}`}>
                         <h1 className={styles.paymentName}>
-                            Kex<div>Pay</div>
+                            Kex<div>支付</div>
                         </h1>
                         <h3 className={styles.paymentTitle}>
-                            Za platiti <span>{selectedSlot.price}€</span>
+                            需支付 <span>{selectedSlot.price}€</span>
                         </h3>
 
                         <div className={styles.paymentField}>
-                            <label>Broj kartice</label>
+                            <label>卡号</label>
                             <input
                                 type="text"
                                 value={cardNumber}
@@ -494,24 +494,24 @@ export default function InstructorProfile() {
                             {cardNumber.replace(/\s/g, "").length > 0 &&
                                 cardNumber.replace(/\s/g, "").length !== 16 && (
                                     <span className={styles.errorText}>
-                        Broj kartice mora imati 16 znamenki
-                    </span>
+                                        卡号必须为16位数字。
+                                    </span>
                                 )}
                         </div>
 
                         <div className={styles.paymentField}>
-                            <label>Ime vlasnika kartice</label>
+                            <label>持卡人姓名</label>
                             <input
                                 type="text"
                                 value={cardName}
                                 onChange={(e) => setCardName(e.target.value)}
-                                placeholder="IME PREZIME"
+                                placeholder="姓名"
                             />
                         </div>
 
                         <div className={styles.paymentRow}>
                             <div className={styles.paymentField}>
-                                <label>Datum isteka</label>
+                                <label>有效期</label>
                                 <input
                                     type="text"
                                     value={cardExpiry}
@@ -520,8 +520,8 @@ export default function InstructorProfile() {
                                 />
                                 {cardExpiry.length === 5 && !isExpiryValid(cardExpiry) && (
                                     <span className={styles.errorText}>
-                            Datum isteka nije valjan
-                        </span>
+                                        有效期无效
+                                    </span>
                                 )}
                             </div>
 
@@ -537,8 +537,8 @@ export default function InstructorProfile() {
                                 />
                                 {cardCvc.length > 0 && cardCvc.length !== 3 && (
                                     <span className={styles.errorText}>
-                            CVC mora imati 3 znamenke
-                        </span>
+                                        CVC 必须为 3 位数字
+                                    </span>
                                 )}
                             </div>
                         </div>
@@ -548,7 +548,7 @@ export default function InstructorProfile() {
                                 className={styles.cancelBtn}
                                 onClick={() => setShowPaymentModal(false)}
                             >
-                                Odustani
+                                取消
                             </button>
 
                             <button
@@ -571,7 +571,7 @@ export default function InstructorProfile() {
                                     setSelectedInterest("");
                                 }}
                             >
-                                Plati
+                                支付
                             </button>
                         </div>
                     </div>
@@ -609,7 +609,7 @@ export default function InstructorProfile() {
                         <h1>
                             {instructor.name} {instructor.surname}
                             {instructor.is_verified && (
-                                <span className={styles.verifiedBadge} title="Verificirani instruktor">✓</span>
+                                <span className={styles.verifiedBadge} title="已验证导师">✓</span>
                             )}
                         </h1>
                         
@@ -626,32 +626,32 @@ export default function InstructorProfile() {
                                 <span className={styles.statValue}>
                                     ⭐ {reviewStats.average_rating}
                                 </span>
-                                <span className={styles.statLabel}>{reviewStats.total_reviews} recenzija</span>
+                                <span className={styles.statLabel}>{reviewStats.total_reviews} 条评价</span>
                             </div>
                         )}
                         {minSlotPrice != null && (
                             <div className={styles.statItem}>
-                                <span className={styles.statValue}>Od {minSlotPrice}€</span>
-                                <span className={styles.statLabel}>po satu</span>
+                                <span className={styles.statValue}>从 {minSlotPrice}€ 起</span>
+                                <span className={styles.statLabel}>每小时</span>
                             </div>
                         )}
                         {instructor.teaching_type && (
                             <div className={styles.statItem}>
                                 <span className={styles.statValue}>
-                                    {instructor.teaching_type === "online" ? "💻" : instructor.teaching_type === "uzivo" ? "🏫" : "💻🏫"}
+                                    {instructor.teaching_type === "线上" ? "💻" : instructor.teaching_type === "线下" ? "🏫" : "💻🏫"}
                                 </span>
                                 <span className={styles.statLabel}>{instructor.teaching_type}</span>
                             </div>
                         )}
                         <div className={styles.statItem}>
                             <span className={styles.statValue}>{availableSlots.length}</span>
-                            <span className={styles.statLabel}>slobodnih termina</span>
+                            <span className={styles.statLabel}>空闲时段</span>
                         </div>
                     </div>
 
                     {instructor.interests?.length > 0 && (
                         <div className={styles.section}>
-                            <h3>🎓 Područja predavanja</h3>
+                            <h3>🎓 授课领域</h3>
                             <div className={styles.tags}>
                                 {instructor.interests.map(i => (
                                     <span key={i.id} className={styles.tag}>
@@ -664,25 +664,25 @@ export default function InstructorProfile() {
 
                     {instructor.biography && (
                         <div className={styles.section}>
-                            <h3>📝 O meni</h3>
+                            <h3>📝 关于我</h3>
                             <p className={styles.bioText}>{instructor.biography}</p>
                         </div>
                     )}
 
                     {instructor.reference && (
                         <div className={styles.section}>
-                            <h3>🏆 Reference</h3>
+                            <h3>🏆 资质证明</h3>
                             <p className={styles.bioText}>{instructor.reference}</p>
                         </div>
                     )}
 
                     {youtubeId && (
                         <div className={styles.section}>
-                            <h3>🎬 Video prezentacija</h3>
+                            <h3>🎬 视频介绍</h3>
                             <div className={styles.video}>
                                 <iframe
                                     src={`https://www.youtube.com/embed/${youtubeId}`}
-                                    title="YouTube video"
+                                    title="YouTube 视频"
                                     allowFullScreen
                                 />
                             </div>
@@ -692,13 +692,13 @@ export default function InstructorProfile() {
                     {/* Reviews Section */}
                     <div className={styles.section}>
                         <div className={styles.reviewsHeader}>
-                            <h3>⭐ Recenzije</h3>
+                            <h3>⭐ 评价</h3>
                             {canReview && (
                                 <button
                                     className={styles.addReviewBtn}
                                     onClick={() => setShowReviewModal(true)}
                                 >
-                                    + Ostavi recenziju
+                                    + 发表评价
                                 </button>
                             )}
                         </div>
@@ -711,7 +711,7 @@ export default function InstructorProfile() {
                                 <div className={styles.ratingDetails}>
                                     {renderStars(Math.round(parseFloat(reviewStats.average_rating)))}
                                     <span className={styles.reviewCount}>
-                                        {reviewStats.total_reviews} {reviewStats.total_reviews === 1 ? "recenzija" : "recenzije"}
+                                        {reviewStats.total_reviews} 条评价
                                     </span>
                                 </div>
                             </div>
@@ -719,9 +719,9 @@ export default function InstructorProfile() {
 
                         {reviews.length === 0 ? (
                             <div className={styles.noReviews}>
-                                <p>Još nema recenzija za ovog instruktora.</p>
+                                <p>此导师暂无评价。</p>
                                 {canReview && (
-                                    <p>Budite prvi koji će ostaviti recenziju!</p>
+                                    <p>成为第一个留下评论的人！</p>
                                 )}
                             </div>
                         ) : (
@@ -766,14 +766,14 @@ export default function InstructorProfile() {
                 {/* Right Column - Calendar & Booking */}
                 <div className={styles.bookingCard}>
                     <div className={styles.bookingHeader}>
-                        <h2>📅 Rezerviraj termin</h2>
-                        <p>Odaberite dan u kalendaru ili pregledajte sve termine ispod</p>
+                        <h2>📅 预约时间</h2>
+                        <p>选择日历中的日期或查看下方所有时段</p>
                     </div>
 
                     {slotsLoading ? (
                         <div className={styles.loadingSlots}>
                             <div className={styles.spinnerSmall}></div>
-                            <p>Učitavanje termina...</p>
+                            <p>加载时段中...</p>
                         </div>
                     ) : (
                         <>
@@ -854,7 +854,7 @@ export default function InstructorProfile() {
                                                     <div key={i} className={`${styles.tooltipItem} ${!isAvailable ? styles.tooltipItemFull : ""}`}>
                                                         🕐 {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
                                                         <span className={styles.tooltipBadge}>
-                                                            {isAvailable ? "Slobodno" : "Popunjeno"}
+                                                            {isAvailable ? "空闲" : "已满"}
                                                         </span>
                                                     </div>
                                                 );
@@ -866,11 +866,11 @@ export default function InstructorProfile() {
                                 <div className={styles.legend}>
                                     <div className={styles.legendItem}>
                                         <span className={`${styles.legendDot} ${styles.legendToday}`}></span>
-                                        Danas
+                                        今天
                                     </div>
                                     <div className={styles.legendItem}>
                                         <span className={`${styles.legendDot} ${styles.legendAvailable}`}></span>
-                                        Slobodni termini
+                                        有空闲时段
                                     </div>
                                 </div>
                             </div>
@@ -880,8 +880,8 @@ export default function InstructorProfile() {
                                 <div className={styles.slotHeader}>
                                     <h3>
                                         {selectedDate 
-                                            ? `Termini za ${formatFullDate(selectedDate)}`
-                                            : "Svi dostupni termini"
+                                            ? `${formatFullDate(selectedDate)} 的时段`
+                                            : "所有可用时段"
                                         }
                                     </h3>
                                     {selectedDate && (
@@ -889,7 +889,7 @@ export default function InstructorProfile() {
                                             className={styles.clearFilter}
                                             onClick={() => setSelectedDate("")}
                                         >
-                                            Prikaži sve ×
+                                            显示全部 ×
                                         </button>
                                     )}
                                 </div>
@@ -897,8 +897,8 @@ export default function InstructorProfile() {
                                 {filteredSlots.length === 0 ? (
                                     <div className={styles.emptySlots}>
                                         <div className={styles.emptyIcon}>📭</div>
-                                        <p>{selectedDate ? "Nema termina za odabrani dan" : "Trenutno nema dostupnih termina"}</p>
-                                        <span>Pokušajte odabrati drugi dan ili se vratite kasnije</span>
+                                        <p>{selectedDate ? "所选日期没有时段" : "当前没有可用时段"}</p>
+                                        <span>尝试选择其他日期或稍后再来</span>
                                     </div>
                                 ) : (
                                     <div className={styles.slotList}>
@@ -913,8 +913,8 @@ export default function InstructorProfile() {
                                                     </div>
                                                     <div className={styles.slotMeta}>
                                                         <span className={styles.slotType}>
-                                                            {slot.teaching_type === "Online" && "💻 Online"}
-                                                            {slot.teaching_type === "Uživo" && "🏫 Uživo"}
+                                                            {slot.teaching_type === "在线" && "💻 在线"}
+                                                            {slot.teaching_type === "线下" && "🏫 线下"}
                                                         </span>
 
                                                             {slot.price != null && (
@@ -925,17 +925,17 @@ export default function InstructorProfile() {
                                                     </div>
                                                     <div className={styles.slotMeta}>
                                                         <span className={styles.slotLessonType}>
-                                                            🎓 {slot.lesson_type === "1na1" ? "1 na 1" : "Grupno"}
+                                                            🎓 {slot.lesson_type === "一对一" ? "一对一" : "小组课"}
                                                         </span>
 
-                                                        {slot.lesson_type === "Grupno" && slot.interest_name && (
+                                                        {slot.lesson_type === "小组课" && slot.interest_name && (
                                                             <span className={styles.slotInterest}>
                                                                 📘 {slot.interest_name}
                                                             </span>
                                                         )}
                                                     </div>
                                                     <div className={styles.slotCapacity}>
-                                                        👥 {Number(slot.capacity) - Number(slot.booked_count || 0)} mjesta preostalo
+                                                        👥 {Number(slot.capacity) - Number(slot.booked_count || 0)} 个剩余名额
                                                     </div>
                                                 </div>
                                                 <button
@@ -949,7 +949,7 @@ export default function InstructorProfile() {
                                                     {bookingInProgress === slot.id ? (
                                                         <span className={styles.btnSpinner}></span>
                                                     ) : (
-                                                        "Rezerviraj"
+                                                        "预约"
                                                     )}
                                                 </button>
                                             </div>
@@ -960,9 +960,9 @@ export default function InstructorProfile() {
 
                             {!user && (
                                 <div className={styles.loginPrompt}>
-                                    <p>🔐 Za rezervaciju termina potrebna je prijava</p>
+                                    <p>🔐 预约时段需要登录</p>
                                     <button onClick={() => navigate("/login")} className={styles.loginBtn}>
-                                        Prijavi se
+                                        登录
                                     </button>
                                 </div>
                             )}

@@ -79,8 +79,8 @@ describe('RegisterEmail component', () => {
 
         const emailInput = screen.getByPlaceholderText(/Email Adresa|email/i);
         const passwordInput = screen.getByPlaceholderText(/^Lozinka$/i);
-        const confirmInput = screen.getByPlaceholderText(/Potvrdi Lozinku|potvrdi/i);
-        const termsCheckbox = screen.getByLabelText(/Prihvaćam uvjete korištenja/i);
+        const confirmInput = screen.getByPlaceholderText(/确认密码|potvrdi/i);
+        const termsCheckbox = screen.getByLabelText(/接受使用条款/i);
         const submitBtn = screen.getByRole('button', { name: /Registracija|Slanje|registracija/i });
 
         // prije potvrde checkboxa gumb je onemogućen
@@ -136,8 +136,8 @@ describe('RegisterEmail component', () => {
 
         const emailInput = screen.getByPlaceholderText(/Email Adresa|email/i);
         const passwordInput = screen.getByPlaceholderText(/^Lozinka$/i);
-        const confirmInput = screen.getByPlaceholderText(/Potvrdi Lozinku|potvrdi/i);
-        const termsCheckbox = screen.getByLabelText(/Prihvaćam uvjete korištenja/i);
+        const confirmInput = screen.getByPlaceholderText(/确认密码|potvrdi/i);
+        const termsCheckbox = screen.getByLabelText(/接受使用条款/i);
         const submitBtn = screen.getByRole('button', { name: /Registracija|Slanje|registracija/i });
 
         await user.type(emailInput, email);

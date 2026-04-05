@@ -12,13 +12,13 @@ const verifyAdmin = async (req, res, next) => {
         );
         
         if (result.rows.length === 0 || !result.rows[0].is_admin) {
-            return res.status(403).json({ message: "Pristup odbijen. Potrebne su administratorske ovlasti." });
+            return res.status(403).json({ message: "访问被拒绝。需要管理员权限。" });
         }
         
         next();
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Greška servera" });
+        res.status(500).json({ message: "服务器错误" });
     }
 };
 
@@ -82,7 +82,7 @@ router.get("/users", verifyToken, verifyAdmin, async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Greška kod dohvaćanja korisnika" });
+        res.status(500).json({ message: "获取用户时出错" });
     }
 });
 
@@ -94,7 +94,7 @@ router.patch("/users/:id/suspend", verifyToken, verifyAdmin, async (req, res) =>
         
         // Can't suspend yourself
         if (parseInt(id) === req.user.id) {
-            return res.status(400).json({ message: "Ne možete suspendirati vlastiti račun" });
+            return res.status(400).json({ message: "无法封禁自己的账户" });
         }
         
         const result = await pool.query(
@@ -103,16 +103,16 @@ router.patch("/users/:id/suspend", verifyToken, verifyAdmin, async (req, res) =>
         );
         
         if (result.rows.length === 0) {
-            return res.status(404).json({ message: "Korisnik nije pronađen" });
+            return res.status(404).json({ message: "用户未找到" });
         }
         
         res.json({ 
-            message: suspended ? "Korisnik je suspendiran" : "Suspenzija je uklonjena",
+            message: suspended ? "用户已被封禁" : "封禁已解除",
             user: result.rows[0]
         });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Greška kod suspenzije korisnika" });
+        res.status(500).json({ message: "封禁用户时出错" });
     }
 });
 
@@ -129,11 +129,11 @@ router.patch("/users/:id/verify", verifyToken, verifyAdmin, async (req, res) => 
         );
         
         if (userCheck.rows.length === 0) {
-            return res.status(404).json({ message: "Korisnik nije pronađen" });
+            return res.status(404).json({ message: "用户未找到" });
         }
         
         if (!userCheck.rows[0].is_professor) {
-            return res.status(400).json({ message: "Korisnik nije instruktor" });
+            return res.status(400).json({ message: "用户不是导师" });
         }
         
         const result = await pool.query(
@@ -142,12 +142,12 @@ router.patch("/users/:id/verify", verifyToken, verifyAdmin, async (req, res) => 
         );
         
         res.json({ 
-            message: verified ? "Instruktor je verificiran" : "Verifikacija je uklonjena",
+            message: verified ? "导师已验证" : "验证已移除",
             professor: result.rows[0]
         });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Greška kod verifikacije instruktora" });
+        res.status(500).json({ message: "验证导师时出错" });
     }
 });
 
@@ -159,7 +159,7 @@ router.patch("/users/:id/admin", verifyToken, verifyAdmin, async (req, res) => {
         
         // Can't remove your own admin status
         if (parseInt(id) === req.user.id && !isAdmin) {
-            return res.status(400).json({ message: "Ne možete ukloniti vlastite administratorske ovlasti" });
+            return res.status(400).json({ message: "无法移除自己的管理员权限" });
         }
         
         const result = await pool.query(
@@ -168,16 +168,16 @@ router.patch("/users/:id/admin", verifyToken, verifyAdmin, async (req, res) => {
         );
         
         if (result.rows.length === 0) {
-            return res.status(404).json({ message: "Korisnik nije pronađen" });
+            return res.status(404).json({ message: "用户未找到" });
         }
         
         res.json({ 
-            message: isAdmin ? "Korisnik je sada administrator" : "Administratorske ovlasti su uklonjene",
+            message: isAdmin ? "用户现在是管理员" : "管理员权限已移除",
             user: result.rows[0]
         });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Greška kod promjene admin statusa" });
+        res.status(500).json({ message: "更改管理员状态时出错" });
     }
 });
 
@@ -188,7 +188,7 @@ router.delete("/users/:id", verifyToken, verifyAdmin, async (req, res) => {
         
         // Can't delete yourself
         if (parseInt(id) === req.user.id) {
-            return res.status(400).json({ message: "Ne možete obrisati vlastiti račun" });
+            return res.status(400).json({ message: "无法删除自己的账户" });
         }
         
         const result = await pool.query(
@@ -197,13 +197,13 @@ router.delete("/users/:id", verifyToken, verifyAdmin, async (req, res) => {
         );
         
         if (result.rows.length === 0) {
-            return res.status(404).json({ message: "Korisnik nije pronađen" });
+            return res.status(404).json({ message: "用户未找到" });
         }
         
-        res.json({ message: "Korisnik je uspješno obrisan" });
+        res.json({ message: "用户已成功删除" });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Greška kod brisanja korisnika" });
+        res.status(500).json({ message: "删除用户时出错" });
     }
 });
 
@@ -225,7 +225,7 @@ router.get("/interests", verifyToken, verifyAdmin, async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Greška kod dohvaćanja predmeta" });
+        res.status(500).json({ message: "获取科目时出错" });
     }
 });
 
@@ -235,7 +235,7 @@ router.post("/interests", verifyToken, verifyAdmin, async (req, res) => {
         const { name } = req.body;
         
         if (!name || name.trim().length === 0) {
-            return res.status(400).json({ message: "Naziv predmeta je obavezan" });
+            return res.status(400).json({ message: "科目名称是必填项" });
         }
         
         const result = await pool.query(
@@ -246,10 +246,10 @@ router.post("/interests", verifyToken, verifyAdmin, async (req, res) => {
         res.status(201).json(result.rows[0]);
     } catch (err) {
         if (err.code === '23505') { // Unique violation
-            return res.status(400).json({ message: "Predmet s tim nazivom već postoji" });
+            return res.status(400).json({ message: "该名称的科目已存在" });
         }
         console.error(err);
-        res.status(500).json({ message: "Greška kod dodavanja predmeta" });
+        res.status(500).json({ message: "添加科目时出错" });
     }
 });
 
@@ -260,7 +260,7 @@ router.put("/interests/:id", verifyToken, verifyAdmin, async (req, res) => {
         const { name } = req.body;
         
         if (!name || name.trim().length === 0) {
-            return res.status(400).json({ message: "Naziv predmeta je obavezan" });
+            return res.status(400).json({ message: "科目名称是必填项" });
         }
         
         const result = await pool.query(
@@ -269,16 +269,16 @@ router.put("/interests/:id", verifyToken, verifyAdmin, async (req, res) => {
         );
         
         if (result.rows.length === 0) {
-            return res.status(404).json({ message: "Predmet nije pronađen" });
+            return res.status(404).json({ message: "科目未找到" });
         }
         
         res.json(result.rows[0]);
     } catch (err) {
         if (err.code === '23505') {
-            return res.status(400).json({ message: "Predmet s tim nazivom već postoji" });
+            return res.status(400).json({ message: "该名称的科目已存在" });
         }
         console.error(err);
-        res.status(500).json({ message: "Greška kod ažuriranja predmeta" });
+        res.status(500).json({ message: "更新科目时出错" });
     }
 });
 
@@ -293,13 +293,13 @@ router.delete("/interests/:id", verifyToken, verifyAdmin, async (req, res) => {
         );
         
         if (result.rows.length === 0) {
-            return res.status(404).json({ message: "Predmet nije pronađen" });
+            return res.status(404).json({ message: "科目未找到" });
         }
         
-        res.json({ message: "Predmet je uspješno obrisan" });
+        res.json({ message: "科目已成功删除" });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Greška kod brisanja predmeta" });
+        res.status(500).json({ message: "删除科目时出错" });
     }
 });
 
@@ -406,7 +406,7 @@ router.get("/analytics", verifyToken, verifyAdmin, async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Greška kod dohvaćanja analitike" });
+        res.status(500).json({ message: "获取分析数据时出错" });
     }
 });
 
@@ -421,7 +421,7 @@ router.get("/check", verifyToken, async (req, res) => {
         res.json({ isAdmin: result.rows[0]?.is_admin || false });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Greška servera" });
+        res.status(500).json({ message: "服务器错误" });
     }
 });
 

@@ -23,7 +23,7 @@ function ForgotPassword() {
             const res = await api.post('/auth/forgotpassword', { email });
             setMessage(res.data.message || 'Ako korisnik postoji, email je poslan.');
         } catch (err) {
-            setError(err.response?.data?.message || 'Greška pri slanju zahtjeva.');
+            setError(err.response?.data?.message || '错误 pri slanju zahtjeva.');
         } finally {
             setLoading(false);
         }
@@ -34,14 +34,14 @@ function ForgotPassword() {
     return (
         <AuthLayout infoText={infoText} infoImage={forgotPasswordImage}>
             <div className={styles.formContainer}>
-                <h2>Zaboravili ste lozinku?</h2>
+                <h2>忘记密码？</h2>
                 <p className={styles.description}>
                     Unesite svoju e-mail adresu i poslati ćemo vam upute za ponovno postavljanje lozinke.
                 </p>
 
                 {message ? (
                     <div className={styles.successMessage}>
-                        <h3>Zahtjev zaprimljen</h3>
+                        <h3>请求已收到</h3>
                         <p>{message}</p>
                         <div className={styles.loginSection}>
                             <Link to="/login" className={`${styles.btn} ${styles.btnSecondary}`}>
@@ -55,7 +55,7 @@ function ForgotPassword() {
                             <Input
                                 icon={EmailIcon}
                                 type="email"
-                                placeholder="Email Adresa"
+                                placeholder="邮箱地址"
                                 value={email}
                                 onChange={e => setEmail(e.target.value)}
                                 required
@@ -65,7 +65,7 @@ function ForgotPassword() {
                             {error && <p className={styles.errorMessage}>{error}</p>}
 
                             <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={loading}>
-                                {loading ? 'Slanje...' : 'Pošalji upute'}
+                                {loading ? '发送...' : 'Pošalji upute'}
                             </button>
                         </form>
 
@@ -74,16 +74,16 @@ function ForgotPassword() {
                         </div>
 
                         <div className={styles.supportSection}>
-                            <p>Još uvijek nemate pristup?<br />Kontaktirajte podršku.</p>
+                            <p>仍然无法访问？<br />联系方式irajte podršku.</p>
                             <button type="button" className={`${styles.btn} ${styles.btnSecondary}`}>
-                                Podrška
+                                支持
                             </button>
                         </div>
 
                         <div className={styles.loginSection}>
-                            <p>Vratite se na prijavu</p>
+                            <p>返回登录</p>
                             <Link to="/login" className={`${styles.btn} ${styles.btnSecondary}`}>
-                                Prijava
+                                登录
                             </Link>
                         </div>
                     </>

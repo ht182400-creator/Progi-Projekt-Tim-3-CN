@@ -22,36 +22,36 @@ function MainLayout() {
         <div className={styles.layout}>
             <header className={styles.navbar}>
                 <Link to="/" className={styles.logoWrapper}>
-                    <img src={logo} alt="Logo" className={styles.logo} />
+                    <img src={logo} alt="标志" className={styles.logo} />
                 </Link>
 
                 <nav className={styles.navLinks}>
-                    <Link to="/">Početna</Link>
+                    <Link to="/">首页</Link>
 
                     {(user && !user.is_professor) || !user ? (
-                        <Link to="/instructors">Instruktori</Link>
+                        <Link to="/instructors">导师</Link>
                     ) : null}
 
-                    <Link to="/quizzes">Kvizovi</Link>
+                    <Link to="/quizzes">测验</Link>
 
                     {user && (
                         <Link to="/calendar">
-                            {user.is_professor ? "Moj kalendar" : "Moji termini"}
+                            {user.is_professor ? "我的日历" : "我的预约"}
                         </Link>
                     )}
 
-                    {user && <Link to="/profile">Profil</Link>}
+                    {user && <Link to="/profile">个人资料</Link>}
                     
                     {user && user.is_admin && (
-                        <Link to="/admin" className={styles.adminLink}>🛡️ Admin</Link>
+                        <Link to="/admin" className={styles.adminLink}>🛡️ 管理员</Link>
                     )}
                 </nav>
 
                 <div className={styles.rightSide}>
                     {!user ? (
                         <>
-                            <Link to="/register" className={styles.registerBtn}>Registracija</Link>
-                            <Link to="/login" className={styles.loginBtn}>Prijava</Link>
+                            <Link to="/register" className={styles.registerBtn}>注册</Link>
+                            <Link to="/login" className={styles.loginBtn}>登录</Link>
                         </>
                     ) : (
                         <>
@@ -63,7 +63,7 @@ function MainLayout() {
                                     {user.profile_picture ? (
                                         <img
                                             src={getImageUrl(user.profile_picture)}
-                                            alt="Profil"
+                                            alt="个人资料"
                                             className={styles.avatar}
                                         />
                                     ) : (
@@ -73,7 +73,7 @@ function MainLayout() {
                             </div>
 
                             <button onClick={logout} className={styles.loginBtn}>
-                                Odjava
+                            退出
                             </button>
                         </>
                     )}

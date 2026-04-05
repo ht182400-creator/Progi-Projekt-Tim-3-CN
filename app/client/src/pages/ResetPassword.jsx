@@ -27,7 +27,7 @@ function ResetPassword() {
         setMessage('');
 
         if (password !== passwordCheck) {
-            setError("Lozinke se ne podudaraju.");
+            setError("密码不匹配。");
             return;
         }
 
@@ -38,13 +38,13 @@ function ResetPassword() {
 
         try {
             const res = await api.post('/auth/reset-password', { token, password, passwordCheck });
-            setMessage(res.data.message || 'Lozinka uspješno promijenjena.');
+            setMessage(res.data.message || '密码 uspješno promijenjena.');
             // Optional: redirect after few seconds
             setTimeout(() => {
                 navigate('/login');
             }, 3000);
         } catch (err) {
-            setError(err.response?.data?.message || 'Greška pri promjeni lozinke.');
+            setError(err.response?.data?.message || '错误 pri promjeni lozinke.');
         } finally {
             setLoading(false);
         }
@@ -59,18 +59,18 @@ function ResetPassword() {
     return (
         <AuthLayout infoText={infoText} infoImage={forgotPasswordImage} blurLeft={true}>
             <div className={styles.formContainer}>
-                <h2>Postavite novu lozinku</h2>
+                <h2>设置新密码</h2>
                 <p className={styles.description}>
                     Unesite novu lozinku i potvrdite je.
                 </p>
 
                 {message ? (
                     <div className={styles.successMessage}>
-                        <h3>Uspjeh!</h3>
+                        <h3>成功！</h3>
                         <p>{message}</p>
                         <div className={styles.loginSection}>
                             <Link to="/login" className={`${styles.btn} ${styles.btnSecondary}`}>
-                                Prijava
+                                登录
                             </Link>
                         </div>
                     </div>
@@ -80,7 +80,7 @@ function ResetPassword() {
                             <Input
                                 rightIcon={showPassword ? EyeIcon : EyeOffIcon}
                                 type={showPassword ? 'text' : 'password'}
-                                placeholder="Nova lozinka"
+                                placeholder="新密码"
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
                                 onRightIconClick={togglePasswordVisibility}
@@ -90,7 +90,7 @@ function ResetPassword() {
                             <Input
                                 rightIcon={showPassword ? EyeIcon : EyeOffIcon}
                                 type={showPassword ? 'text' : 'password'}
-                                placeholder="Potvrdite lozinku"
+                                placeholder="确认密码"
                                 value={passwordCheck}
                                 onChange={e => setPasswordCheck(e.target.value)}
                                 onRightIconClick={togglePasswordVisibility}
@@ -105,15 +105,15 @@ function ResetPassword() {
                                     className={styles.requirementsToggle}
                                     onClick={() => setShowRequirements(!showRequirements)}
                                 >
-                                    <span>Minimalni zahtjevi za lozinku:</span>
+                                    <span>密码最低要求:</span>
                                     <ChevronDownIcon size={16} className={showRequirements ? styles.rotated : ''} />
                                 </button>
                                 {showRequirements && (
                                     <ul className={styles.requirementsList}>
-                                        <li>Najmanje 8 znakova</li>
-                                        <li>Barem jedno veliko slovo</li>
-                                        <li>Barem jedan broj</li>
-                                        <li>Barem jedan specijalni znak</li>
+                                        <li>至少8个字符</li>
+                                        <li>至少一个大写字母</li>
+                                        <li>至少一个数字</li>
+                                        <li>至少一个特殊字符</li>
                                     </ul>
                                 )}
                             </div>
@@ -130,16 +130,16 @@ function ResetPassword() {
                         </div>
 
                         <div className={styles.supportSection}>
-                            <p>Imate poteškoća sa lozinkom?</p>
+                            <p>密码有问题？</p>
                             <button type="button" className={`${styles.btn} ${styles.btnSecondary}`}>
-                                Podrška
+                                支持
                             </button>
                         </div>
 
                         <div className={styles.loginSection}>
-                            <p>Vratite se na prijavu</p>
+                            <p>返回登录</p>
                             <Link to="/login" className={`${styles.btn} ${styles.btnSecondary}`}>
-                                Prijava
+                                登录
                             </Link>
                         </div>
                     </>

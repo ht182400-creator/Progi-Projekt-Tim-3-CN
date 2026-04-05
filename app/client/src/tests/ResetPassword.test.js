@@ -85,7 +85,7 @@ describe('ResetPassword component', () => {
         expect(msg).toBeInTheDocument();
     });
 
-    test('Test 2: Klik na gumb "Podrška" baca grešku jer metoda ne postoji', async () => {
+    test('Test 2: Klik na gumb "支持" baca grešku jer metoda ne postoji', async () => {
         renderResetPassword();
 
         const supportBtn = screen.getByRole('button', { name: /Podrška/i });

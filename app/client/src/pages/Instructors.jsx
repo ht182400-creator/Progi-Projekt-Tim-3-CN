@@ -20,12 +20,12 @@ export default function Instructors() {
     const dropdownRef = useRef(null);
 
     const interestsList = [
-        "Matematika Osnovna Škola",
-        "Fizika Osnovna Škola",
-        "Informatika Osnovna Škola",
-        "Matematika Srednja Škola",
-        "Fizika Srednja Škola",
-        "Informatika Srednja Škola"
+        "小学数学",
+        "小学物理",
+        "小学信息学",
+        "中学数学",
+        "中学物理",
+        "中学信息学"
     ];
 
     useEffect(() => {
@@ -106,14 +106,14 @@ export default function Instructors() {
 
     return (
         <div className={styles.page}>
-            <h1>Instruktori</h1>
+            <h1>导师</h1>
 
             {/* TOP BAR */}
             <div className={styles.topBar}>
                 <input
                     className={styles.searchInput}
                     type="text"
-                    placeholder="Pretraži ime..."
+                    placeholder="搜索名字..."
                     value={filters.search}
                     onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
                 />
@@ -124,7 +124,7 @@ export default function Instructors() {
                         className={styles.filtersBtn}
                         onClick={() => setFiltersOpen((v) => !v)}
                     >
-                        Filteri
+                        筛选
                         {activeFiltersCount > 0 && (
                             <span className={styles.badge}>{activeFiltersCount}</span>
                         )}
@@ -136,7 +136,7 @@ export default function Instructors() {
                     {filtersOpen && (
                         <div className={styles.dropdown}>
                             <div className={styles.dropdownSection}>
-                                <div className={styles.sectionTitle}>Način predavanja</div>
+                                <div className={styles.sectionTitle}>授课方式</div>
                                 <select
                                     className={styles.control}
                                     value={filters.teaching_type}
@@ -144,15 +144,15 @@ export default function Instructors() {
                                         setFilters((f) => ({ ...f, teaching_type: e.target.value }))
                                     }
                                 >
-                                    <option value="">Sve</option>
-                                    <option value="Uživo">Uživo</option>
-                                    <option value="Online">Online</option>
-                                    <option value="Uživo i Online">Uživo i Online</option>
+                                    <option value="">全部</option>
+                                    <option value="线下">线下</option>
+                                    <option value="在线">在线</option>
+                                    <option value="线下和线上">线下和线上</option>
                                 </select>
                             </div>
 
                             <div className={styles.dropdownSection}>
-                                <div className={styles.sectionTitle}>Max cijena (€)</div>
+                                <div className={styles.sectionTitle}>最高价格 (€)</div>
                                 <input
                                     className={styles.control}
                                     type="number"
@@ -165,7 +165,7 @@ export default function Instructors() {
                             </div>
 
                             <div className={styles.dropdownSection}>
-                                <div className={styles.sectionTitle}>Predmeti</div>
+                                <div className={styles.sectionTitle}>科目</div>
                                 <div className={styles.interestsList}>
                                     {interestsList.map((i) => (
                                         <label key={i} className={styles.interestItem}>
@@ -181,7 +181,7 @@ export default function Instructors() {
                             </div>
 
                             <div className={styles.dropdownSection}>
-                                <div className={styles.sectionTitle}>Sortiranje po cijeni</div>
+                                <div className={styles.sectionTitle}>按价格排序</div>
                                 <select
                                     className={styles.control}
                                     value={filters.sort_price}
@@ -189,22 +189,22 @@ export default function Instructors() {
                                         setFilters((f) => ({ ...f, sort_price: e.target.value }))
                                     }
                                 >
-                                    <option value="">Bez sortiranja</option>
-                                    <option value="asc">Uzlazno</option>
-                                    <option value="desc">Silazno</option>
+                                    <option value="">不排序</option>
+                                    <option value="asc">升序</option>
+                                    <option value="desc">降序</option>
                                 </select>
                             </div>
 
                             <div className={styles.dropdownActions}>
                                 <button type="button" className={styles.clearBtn} onClick={clearFilters}>
-                                    Očisti
+                                    清除
                                 </button>
                                 <button
                                     type="button"
                                     className={styles.closeBtn}
                                     onClick={() => setFiltersOpen(false)}
                                 >
-                                    Gotovo
+                                    完成
                                 </button>
                             </div>
                         </div>
@@ -225,7 +225,7 @@ export default function Instructors() {
                         />
                         <h3>
                             {i.name} {i.surname}
-                            {i.is_verified && <span className={styles.verifiedBadge} title="Verificirani instruktor">✓</span>}
+                            {i.is_verified && <span className={styles.verifiedBadge} title="已验证导师">✓</span>}
                         </h3>
                         {i.review_count > 0 && (
                             <p className={styles.rating}>
@@ -236,7 +236,7 @@ export default function Instructors() {
                         {i.min_price != null ? (
                             <p>{i.min_price} € / sat</p>
                         ) : (
-                            <p className={styles.noPrice}>Nema slobodnih termina</p>
+                            <p className={styles.noPrice}>没有空闲时间</p>
                         )}
                         <p>{i.city}</p>
                     </div>

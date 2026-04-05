@@ -44,7 +44,7 @@ export default function TakeQuiz() {
             setQuiz(res.data.quiz);
             setQuestions(res.data.questions);
         } catch (err) {
-            setError(err.response?.data?.message || "Kviz nije pronađen.");
+            setError(err.response?.data?.message || "未找到测验。");
         } finally {
             setLoading(false);
         }
@@ -55,7 +55,7 @@ export default function TakeQuiz() {
             const res = await api.get(`/quizzes/${id}/leaderboard`);
             setLeaderboard(res.data.leaderboard);
         } catch (err) {
-            console.error("Error fetching leaderboard:", err);
+            console.error("获取排行榜时出错:", err);
         }
     };
 
@@ -65,7 +65,7 @@ export default function TakeQuiz() {
             return;
         }
         if (user.is_professor) {
-            setError("Samo učenici mogu rješavati kvizove.");
+            setError("只有学生可以参加测验。");
             return;
         }
 
@@ -77,7 +77,7 @@ export default function TakeQuiz() {
             setScore(0);
             startTimer();
         } catch (err) {
-            setError(err.response?.data?.message || "Greška pri pokretanju kviza.");
+            setError(err.response?.data?.message || "开始测验时出错。");
         }
     };
 
@@ -103,7 +103,7 @@ export default function TakeQuiz() {
 
     const handleTimeout = () => {
         if (selectedAnswer === null) {
-            // No answer selected, submit with no answer
+            // 没有选择答案，提交空答案
             submitAnswer(null);
         }
     };
@@ -140,7 +140,7 @@ export default function TakeQuiz() {
             
             setGameState("feedback");
         } catch (err) {
-            console.error("Error submitting answer:", err);
+            console.error("提交答案时出错:", err);
         }
     };
 
@@ -164,7 +164,7 @@ export default function TakeQuiz() {
             setGameState("finished");
             fetchLeaderboard();
         } catch (err) {
-            console.error("Error finishing quiz:", err);
+            console.error("完成测验时出错:", err);
         }
     };
 
@@ -178,7 +178,7 @@ export default function TakeQuiz() {
         return (
             <div className={styles.loadingScreen}>
                 <div className={styles.spinner}></div>
-                <p>Učitavanje kviza...</p>
+                <p>加载测验...</p>
             </div>
         );
     }
@@ -186,9 +186,9 @@ export default function TakeQuiz() {
     if (error) {
         return (
             <div className={styles.errorScreen}>
-                <h2>Greška</h2>
+                <h2>错误</h2>
                 <p>{error}</p>
-                <button onClick={() => navigate("/quizzes")}>Natrag na kvizove</button>
+                <button onClick={() => navigate("/quizzes")}>返回测验列表</button>
             </div>
         );
     }
@@ -206,24 +206,24 @@ export default function TakeQuiz() {
                     <div className={styles.introStats}>
                         <div className={styles.stat}>
                             <span className={styles.statValue}>{questions.length}</span>
-                            <span className={styles.statLabel}>Pitanja</span>
+                            <span className={styles.statLabel}>问题</span>
                         </div>
                         <div className={styles.stat}>
                             <span className={styles.statValue}>{quiz.time_limit}s</span>
-                            <span className={styles.statLabel}>Po pitanju</span>
+                            <span className={styles.statLabel}>每题</span>
                         </div>
                     </div>
                     
                     <div className={styles.author}>
-                        Autor: {quiz.professor_name} {quiz.professor_surname}
+                        作者: {quiz.professor_name} {quiz.professor_surname}
                     </div>
                     
                     <button className={styles.startBtn} onClick={startQuiz}>
-                        Započni kviz!
+                        开始答题！
                     </button>
                     
                     <button className={styles.backBtn} onClick={() => navigate("/quizzes")}>
-                        ← Natrag
+                        ← 返回
                     </button>
                 </div>
             </div>
@@ -242,7 +242,7 @@ export default function TakeQuiz() {
                         {currentQuestion + 1} / {questions.length}
                     </div>
                     <div className={styles.scoreDisplay}>
-                        <span className={styles.scoreLabel}>Bodovi</span>
+                        <span className={styles.scoreLabel}>分数</span>
                         <span className={styles.scoreValue}>{score}</span>
                     </div>
                 </div>
@@ -263,7 +263,7 @@ export default function TakeQuiz() {
                 {/* Question */}
                 <div className={styles.questionBox}>
                     <h2>{question.question_text}</h2>
-                    <span className={styles.points}>{question.points} bodova</span>
+                    <span className={styles.points}>{question.points} 分</span>
                 </div>
 
                 {/* Answers */}
@@ -306,17 +306,17 @@ export default function TakeQuiz() {
                             <div className={styles.feedbackIcon}>
                                 {feedback?.isCorrect ? "✓" : "✕"}
                             </div>
-                            <h3>{feedback?.isCorrect ? "Točno!" : "Netočno!"}</h3>
+                            <h3>{feedback?.isCorrect ? "正确！" : "错误！"}</h3>
                             {feedback?.isCorrect && (
-                                <p className={styles.pointsEarned}>+{feedback.pointsEarned} bodova</p>
+                                <p className={styles.pointsEarned}>+{feedback.pointsEarned} 分</p>
                             )}
                             {!feedback?.isCorrect && (
                                 <p className={styles.correctAnswerText}>
-                                    Točan odgovor: {feedback?.correctAnswer?.answer_text}
+                                    正确答案: {feedback?.correctAnswer?.answer_text}
                                 </p>
                             )}
                             <button className={styles.nextBtn} onClick={nextQuestion}>
-                                {currentQuestion < questions.length - 1 ? "Sljedeće pitanje" : "Završi kviz"}
+                                {currentQuestion < questions.length - 1 ? "下一题" : "完成测验"}
                             </button>
                         </div>
                     </div>
@@ -331,7 +331,7 @@ export default function TakeQuiz() {
             <div className={styles.finishedScreen}>
                 <div className={styles.resultsCard}>
                     <div className={styles.trophy}>🏆</div>
-                    <h1>Kviz završen!</h1>
+                    <h1>测验完成！</h1>
                     
                     <div className={styles.finalScore}>
                         <span className={styles.scoreNumber}>{finalResults?.score}</span>
@@ -344,15 +344,15 @@ export default function TakeQuiz() {
                     </div>
                     
                     <div className={styles.ratingText}>
-                        {finalResults?.percentage >= 80 && "Odlično! 🎉"}
-                        {finalResults?.percentage >= 60 && finalResults?.percentage < 80 && "Vrlo dobro! 👏"}
-                        {finalResults?.percentage >= 40 && finalResults?.percentage < 60 && "Dobro! 👍"}
-                        {finalResults?.percentage < 40 && "Nastavi vježbati! 💪"}
+                        {finalResults?.percentage >= 80 && "优秀！ 🎉"}
+                        {finalResults?.percentage >= 60 && finalResults?.percentage < 80 && "非常好！ 👏"}
+                        {finalResults?.percentage >= 40 && finalResults?.percentage < 60 && "良好！ 👍"}
+                        {finalResults?.percentage < 40 && "继续练习！ 💪"}
                     </div>
 
                     {leaderboard.length > 0 && (
                         <div className={styles.leaderboard}>
-                            <h3>🏅 Ljestvica</h3>
+                            <h3>🏅 排行榜</h3>
                             {leaderboard.slice(0, 5).map((entry, index) => (
                                 <div key={index} className={styles.leaderboardEntry}>
                                     <span className={styles.rank}>#{index + 1}</span>
@@ -370,10 +370,10 @@ export default function TakeQuiz() {
                             setScore(0);
                             setCurrentQuestion(0);
                         }}>
-                            Pokušaj ponovo
+                            再试一次
                         </button>
                         <button className={styles.backBtn} onClick={() => navigate("/quizzes")}>
-                            Svi kvizovi
+                            所有测验
                         </button>
                     </div>
                 </div>

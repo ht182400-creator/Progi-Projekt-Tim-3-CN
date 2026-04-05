@@ -34,7 +34,7 @@ function VerifyEmail() {
 
     return (
         <div>
-            <h2>Potvrda Email Adrese</h2>
+            <h2>邮箱确认</h2>
             <p>{status}</p>
         </div>
     );

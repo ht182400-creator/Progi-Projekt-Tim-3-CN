@@ -61,7 +61,7 @@ router.get("/", async (req, res) => {
         res.json({ quizzes: result.rows });
     } catch (err) {
         console.error("Error fetching quizzes:", err);
-        res.status(500).json({ message: "Greška pri dohvaćanju kvizova." });
+        res.status(500).json({ message: "获取测验时出错。" });
     }
 });
 
@@ -70,7 +70,7 @@ router.get("/my-quizzes", verifyToken, async (req, res) => {
     try {
         const isProfessor = await requireProfessor(req.user.id);
         if (!isProfessor) {
-            return res.status(403).json({ message: "Samo profesori mogu vidjeti svoje kvizove." });
+            return res.status(403).json({ message: "只有教师可以查看自己的测验。" });
         }
 
         const result = await pool.query(`
@@ -96,7 +96,7 @@ router.get("/my-quizzes", verifyToken, async (req, res) => {
         res.json({ quizzes: result.rows });
     } catch (err) {
         console.error("Error fetching professor quizzes:", err);
-        res.status(500).json({ message: "Greška pri dohvaćanju kvizova." });
+        res.status(500).json({ message: "获取测验时出错。" });
     }
 });
 
@@ -105,30 +105,30 @@ router.post("/", verifyToken, async (req, res) => {
     try {
         const isProfessor = await requireProfessor(req.user.id);
         if (!isProfessor) {
-            return res.status(403).json({ message: "Samo profesori mogu kreirati kvizove." });
+            return res.status(403).json({ message: "只有教师可以创建测验。" });
         }
 
         const { title, description, interest_id, time_limit, questions } = req.body;
 
         if (!title || !interest_id) {
-            return res.status(400).json({ message: "Naslov i predmet su obavezni." });
+            return res.status(400).json({ message: "标题和科目是必填项。" });
         }
 
         if (!questions || questions.length === 0) {
-            return res.status(400).json({ message: "Kviz mora imati barem jedno pitanje." });
+            return res.status(400).json({ message: "测验必须至少有一个问题。" });
         }
 
         // Validate questions have at least one correct answer
         for (const q of questions) {
             if (!q.question_text) {
-                return res.status(400).json({ message: "Sva pitanja moraju imati tekst." });
+                return res.status(400).json({ message: "所有问题都必须有文本。" });
             }
             if (!q.answers || q.answers.length < 2) {
-                return res.status(400).json({ message: "Svako pitanje mora imati barem 2 odgovora." });
+                return res.status(400).json({ message: "每个问题必须至少有 2 个答案。" });
             }
             const hasCorrect = q.answers.some(a => a.is_correct);
             if (!hasCorrect) {
-                return res.status(400).json({ message: "Svako pitanje mora imati barem jedan točan odgovor." });
+                return res.status(400).json({ message: "每个问题必须至少有一个正确答案。" });
             }
         }
 
@@ -163,10 +163,10 @@ router.post("/", verifyToken, async (req, res) => {
             }
         }
 
-        res.status(201).json({ message: "Kviz kreiran.", quiz_id: quizId });
+        res.status(201).json({ message: "测验已创建。", quiz_id: quizId });
     } catch (err) {
         console.error("Error creating quiz:", err);
-        res.status(500).json({ message: "Greška pri kreiranju kviza." });
+        res.status(500).json({ message: "创建测验时出错。" });
     }
 });
 
@@ -175,7 +175,7 @@ router.patch("/:id/publish", verifyToken, async (req, res) => {
     try {
         const isProfessor = await requireProfessor(req.user.id);
         if (!isProfessor) {
-            return res.status(403).json({ message: "Samo profesori mogu objavljivati kvizove." });
+            return res.status(403).json({ message: "只有教师可以发布测验。" });
         }
 
         const { id } = req.params;
@@ -189,13 +189,13 @@ router.patch("/:id/publish", verifyToken, async (req, res) => {
         `, [is_published, id, req.user.id]);
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ message: "Kviz nije pronađen." });
+            return res.status(404).json({ message: "未找到测验。" });
         }
 
-        res.json({ message: is_published ? "Kviz objavljen." : "Kviz sakriven.", quiz: result.rows[0] });
+        res.json({ message: is_published ? "测验已发布。" : "测验已隐藏。", quiz: result.rows[0] });
     } catch (err) {
         console.error("Error publishing quiz:", err);
-        res.status(500).json({ message: "Greška pri objavljivanju kviza." });
+        res.status(500).json({ message: "发布测验时出错。" });
     }
 });
 
@@ -221,7 +221,7 @@ router.get("/:id", async (req, res) => {
         `, [id]);
 
         if (quizResult.rows.length === 0) {
-            return res.status(404).json({ message: "Kviz nije pronađen." });
+            return res.status(404).json({ message: "未找到测验。" });
         }
 
         const questionsResult = await pool.query(`
@@ -250,7 +250,7 @@ router.get("/:id", async (req, res) => {
         });
     } catch (err) {
         console.error("Error fetching quiz:", err);
-        res.status(500).json({ message: "Greška pri dohvaćanju kviza." });
+        res.status(500).json({ message: "获取测验时出错。" });
     }
 });
 
@@ -259,7 +259,7 @@ router.get("/:id/edit", verifyToken, async (req, res) => {
     try {
         const isProfessor = await requireProfessor(req.user.id);
         if (!isProfessor) {
-            return res.status(403).json({ message: "Samo profesori mogu uređivati kvizove." });
+            return res.status(403).json({ message: "只有教师可以编辑测验。" });
         }
 
         const { id } = req.params;
@@ -272,7 +272,7 @@ router.get("/:id/edit", verifyToken, async (req, res) => {
         `, [id, req.user.id]);
 
         if (quizResult.rows.length === 0) {
-            return res.status(404).json({ message: "Kviz nije pronađen." });
+            return res.status(404).json({ message: "未找到测验。" });
         }
 
         const questionsResult = await pool.query(`
@@ -302,7 +302,7 @@ router.get("/:id/edit", verifyToken, async (req, res) => {
         });
     } catch (err) {
         console.error("Error fetching quiz for edit:", err);
-        res.status(500).json({ message: "Greška pri dohvaćanju kviza." });
+        res.status(500).json({ message: "获取测验时出错。" });
     }
 });
 
@@ -311,7 +311,7 @@ router.delete("/:id", verifyToken, async (req, res) => {
     try {
         const isProfessor = await requireProfessor(req.user.id);
         if (!isProfessor) {
-            return res.status(403).json({ message: "Samo profesori mogu brisati kvizove." });
+            return res.status(403).json({ message: "只有教师可以删除测验。" });
         }
 
         const { id } = req.params;
@@ -321,13 +321,13 @@ router.delete("/:id", verifyToken, async (req, res) => {
         `, [id, req.user.id]);
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ message: "Kviz nije pronađen." });
+            return res.status(404).json({ message: "未找到测验。" });
         }
 
-        res.json({ message: "Kviz obrisan." });
+        res.json({ message: "测验已删除。" });
     } catch (err) {
         console.error("Error deleting quiz:", err);
-        res.status(500).json({ message: "Greška pri brisanju kviza." });
+        res.status(500).json({ message: "删除测验时出错。" });
     }
 });
 
@@ -336,7 +336,7 @@ router.post("/:id/start", verifyToken, async (req, res) => {
     try {
         const isStudent = await requireStudent(req.user.id);
         if (!isStudent) {
-            return res.status(403).json({ message: "Samo učenici mogu rješavati kvizove." });
+            return res.status(403).json({ message: "只有学生可以参加测验。" });
         }
 
         const { id } = req.params;
@@ -347,7 +347,7 @@ router.post("/:id/start", verifyToken, async (req, res) => {
         `, [id]);
 
         if (quizCheck.rows.length === 0) {
-            return res.status(404).json({ message: "Kviz nije pronađen." });
+            return res.status(404).json({ message: "未找到测验。" });
         }
 
         // Calculate total points
@@ -371,7 +371,7 @@ router.post("/:id/start", verifyToken, async (req, res) => {
         });
     } catch (err) {
         console.error("Error starting quiz:", err);
-        res.status(500).json({ message: "Greška pri pokretanju kviza." });
+        res.status(500).json({ message: "开始测验时出错。" });
     }
 });
 
@@ -380,7 +380,7 @@ router.post("/attempt/:attemptId/answer", verifyToken, async (req, res) => {
     try {
         const isStudent = await requireStudent(req.user.id);
         if (!isStudent) {
-            return res.status(403).json({ message: "Samo učenici mogu odgovarati." });
+            return res.status(403).json({ message: "只有学生可以答题。" });
         }
 
         const { attemptId } = req.params;
@@ -392,7 +392,7 @@ router.post("/attempt/:attemptId/answer", verifyToken, async (req, res) => {
         `, [attemptId, req.user.id]);
 
         if (attemptCheck.rows.length === 0) {
-            return res.status(404).json({ message: "Pokušaj nije pronađen ili je završen." });
+            return res.status(404).json({ message: "未找到答题记录或已完成。" });
         }
 
         // Check if answer is correct and get points
@@ -440,7 +440,7 @@ router.post("/attempt/:attemptId/answer", verifyToken, async (req, res) => {
         });
     } catch (err) {
         console.error("Error submitting answer:", err);
-        res.status(500).json({ message: "Greška pri slanju odgovora." });
+        res.status(500).json({ message: "提交答案时出错。" });
     }
 });
 
@@ -449,7 +449,7 @@ router.post("/attempt/:attemptId/complete", verifyToken, async (req, res) => {
     try {
         const isStudent = await requireStudent(req.user.id);
         if (!isStudent) {
-            return res.status(403).json({ message: "Samo učenici mogu završiti kviz." });
+            return res.status(403).json({ message: "只有学生可以完成测验。" });
         }
 
         const { attemptId } = req.params;
@@ -472,18 +472,18 @@ router.post("/attempt/:attemptId/complete", verifyToken, async (req, res) => {
         `, [score, attemptId, req.user.id]);
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ message: "Pokušaj nije pronađen ili je već završen." });
+            return res.status(404).json({ message: "未找到答题记录或已完成。" });
         }
 
         res.json({
-            message: "Kviz završen!",
+            message: "测验完成！",
             score: score,
             total_points: result.rows[0].total_points,
             percentage: Math.round((score / result.rows[0].total_points) * 100)
         });
     } catch (err) {
         console.error("Error completing quiz:", err);
-        res.status(500).json({ message: "Greška pri završavanju kviza." });
+        res.status(500).json({ message: "完成测验时出错。" });
     }
 });
 
@@ -492,7 +492,7 @@ router.get("/my-results", verifyToken, async (req, res) => {
     try {
         const isStudent = await requireStudent(req.user.id);
         if (!isStudent) {
-            return res.status(403).json({ message: "Samo učenici mogu vidjeti rezultate." });
+            return res.status(403).json({ message: "只有学生可以查看成绩。" });
         }
 
         const result = await pool.query(`
@@ -518,7 +518,7 @@ router.get("/my-results", verifyToken, async (req, res) => {
         res.json({ results: result.rows });
     } catch (err) {
         console.error("Error fetching results:", err);
-        res.status(500).json({ message: "Greška pri dohvaćanju rezultata." });
+        res.status(500).json({ message: "获取成绩时出错。" });
     }
 });
 
@@ -546,7 +546,7 @@ router.get("/:id/leaderboard", async (req, res) => {
         res.json({ leaderboard: result.rows });
     } catch (err) {
         console.error("Error fetching leaderboard:", err);
-        res.status(500).json({ message: "Greška pri dohvaćanju ljestvice." });
+        res.status(500).json({ message: "获取排行榜时出错。" });
     }
 });
 

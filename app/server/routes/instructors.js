@@ -42,7 +42,6 @@ router.get("/", async (req, res) => {
         `);
         }
 
-
         if (interests) {
             values.push(interests.split(","));
             where.push(`
@@ -95,7 +94,7 @@ router.get("/", async (req, res) => {
 
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Greška kod dohvaćanja instruktora" });
+        res.status(500).json({ message: "获取教师时出错" });
     }
 });
 
@@ -133,13 +132,13 @@ router.get("/:id", async (req, res) => {
         const result = await pool.query(query, [id]);
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ message: "Instruktor nije pronađen" });
+            return res.status(404).json({ message: "未找到教师" });
         }
 
         res.json(result.rows[0]);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Greška kod dohvaćanja profila instruktora" });
+        res.status(500).json({ message: "获取教师资料时出错" });
     }
 });
 

@@ -31,27 +31,27 @@ export default function Admin() {
     const [errorMsg, setErrorMsg] = useState("");
 
     useEffect(() => {
-        checkAdmin();
+        check管理员();
     }, []);
 
     useEffect(() => {
-        if (isAdmin && activeTab === "users") {
+        if (is管理员 && activeTab === "users") {
             fetchUsers();
-        } else if (isAdmin && activeTab === "interests") {
+        } else if (is管理员 && activeTab === "interests") {
             fetchInterests();
-        } else if (isAdmin && activeTab === "analytics") {
+        } else if (is管理员 && activeTab === "analytics") {
             fetchAnalytics();
         }
-    }, [isAdmin, activeTab, userFilters]);
+    }, [is管理员, activeTab, userFilters]);
 
-    const checkAdmin = async () => {
+    const check管理员 = async () => {
         try {
             const res = await axios.get("/admin/check");
-            if (!res.data.isAdmin) {
+            if (!res.data.is管理员) {
                 navigate("/");
                 return;
             }
-            setIsAdmin(true);
+            setIs管理员(true);
         } catch (err) {
             navigate("/");
         } finally {
@@ -65,7 +65,7 @@ export default function Admin() {
             const res = await axios.get("/admin/users", { params: userFilters });
             setUsers(res.data);
         } catch (err) {
-            showError("Greška kod dohvaćanja korisnika");
+            showError("错误 kod dohvaćanja korisnika");
         } finally {
             setUsersLoading(false);
         }
@@ -76,7 +76,7 @@ export default function Admin() {
             const res = await axios.get("/admin/interests");
             setInterests(res.data);
         } catch (err) {
-            showError("Greška kod dohvaćanja predmeta");
+            showError("错误 kod dohvaćanja predmeta");
         }
     };
 
@@ -85,7 +85,7 @@ export default function Admin() {
             const res = await axios.get("/admin/analytics");
             setAnalytics(res.data);
         } catch (err) {
-            showError("Greška kod dohvaćanja analitike");
+            showError("错误 kod dohvaćanja analitike");
         }
     };
 
@@ -106,27 +106,27 @@ export default function Admin() {
             showSuccess(suspend ? "Korisnik suspendiran" : "Suspenzija uklonjena");
             fetchUsers();
         } catch (err) {
-            showError(err.response?.data?.message || "Greška");
+            showError(err.response?.data?.message || "错误");
         }
     };
 
     const handleVerify = async (userId, verify) => {
         try {
             await axios.patch(`/admin/users/${userId}/verify`, { verified: verify });
-            showSuccess(verify ? "Instruktor verificiran" : "Verifikacija uklonjena");
+            showSuccess(verify ? "已验证导师" : "已取消验证");
             fetchUsers();
         } catch (err) {
-            showError(err.response?.data?.message || "Greška");
+            showError(err.response?.data?.message || "错误");
         }
     };
 
-    const handleToggleAdmin = async (userId, makeAdmin) => {
+    const handleToggle管理员 = async (userId, make管理员) => {
         try {
-            await axios.patch(`/admin/users/${userId}/admin`, { isAdmin: makeAdmin });
-            showSuccess(makeAdmin ? "Korisnik je sada admin" : "Admin status uklonjen");
+            await axios.patch(`/admin/users/${userId}/admin`, { is管理员: make管理员 });
+            showSuccess(make管理员 ? "Korisnik je sada admin" : "管理员 status uklonjen");
             fetchUsers();
         } catch (err) {
-            showError(err.response?.data?.message || "Greška");
+            showError(err.response?.data?.message || "错误");
         }
     };
 
@@ -137,7 +137,7 @@ export default function Admin() {
             showSuccess("Korisnik obrisan");
             fetchUsers();
         } catch (err) {
-            showError(err.response?.data?.message || "Greška");
+            showError(err.response?.data?.message || "错误");
         }
     };
 
@@ -147,10 +147,10 @@ export default function Admin() {
         try {
             await axios.post("/admin/interests", { name: newInterest.trim() });
             setNewInterest("");
-            showSuccess("Predmet dodan");
+            showSuccess("科目 dodan");
             fetchInterests();
         } catch (err) {
-            showError(err.response?.data?.message || "Greška");
+            showError(err.response?.data?.message || "错误");
         }
     };
 
@@ -159,10 +159,10 @@ export default function Admin() {
         try {
             await axios.put(`/admin/interests/${id}`, { name: editingInterest.name.trim() });
             setEditingInterest(null);
-            showSuccess("Predmet ažuriran");
+            showSuccess("科目 ažuriran");
             fetchInterests();
         } catch (err) {
-            showError(err.response?.data?.message || "Greška");
+            showError(err.response?.data?.message || "错误");
         }
     };
 
@@ -170,10 +170,10 @@ export default function Admin() {
         if (!confirm("Jeste li sigurni? Ovo će obrisati sve povezane podatke.")) return;
         try {
             await axios.delete(`/admin/interests/${id}`);
-            showSuccess("Predmet obrisan");
+            showSuccess("科目 obrisan");
             fetchInterests();
         } catch (err) {
-            showError(err.response?.data?.message || "Greška");
+            showError(err.response?.data?.message || "错误");
         }
     };
 
@@ -186,7 +186,7 @@ export default function Admin() {
         );
     }
 
-    if (!isAdmin) return null;
+    if (!is管理员) return null;
 
     return (
         <div className={styles.page}>
@@ -197,14 +197,14 @@ export default function Admin() {
                 {/* Sidebar */}
                 <div className={styles.sidebar}>
                     <div className={styles.sidebarHeader}>
-                        <h2>🛡️ Admin Panel</h2>
+                        <h2>🛡️ 管理员 Panel</h2>
                     </div>
                     
                     <nav className={styles.tabNav}>
                         {[
                             { id: "analytics", icon: "📊", label: "Analitika" },
                             { id: "users", icon: "👥", label: "Korisnici" },
-                            { id: "interests", icon: "📚", label: "Predmeti" },
+                            { id: "interests", icon: "📚", label: "科目" },
                         ].map(tab => (
                             <button
                                 key={tab.id}
@@ -230,28 +230,28 @@ export default function Admin() {
                                     <div className={styles.statIcon}>👥</div>
                                     <div className={styles.statInfo}>
                                         <span className={styles.statValue}>{analytics.users.total}</span>
-                                        <span className={styles.statLabel}>Ukupno korisnika</span>
+                                        <span className={styles.statLabel}>总用户数</span>
                                     </div>
                                 </div>
                                 <div className={styles.statCard}>
                                     <div className={styles.statIcon}>🎓</div>
                                     <div className={styles.statInfo}>
                                         <span className={styles.statValue}>{analytics.users.students}</span>
-                                        <span className={styles.statLabel}>Studenata</span>
+                                        <span className={styles.statLabel}>学生数</span>
                                     </div>
                                 </div>
                                 <div className={styles.statCard}>
                                     <div className={styles.statIcon}>👨‍🏫</div>
                                     <div className={styles.statInfo}>
                                         <span className={styles.statValue}>{analytics.users.instructors}</span>
-                                        <span className={styles.statLabel}>Instruktora</span>
+                                        <span className={styles.statLabel}>导师数</span>
                                     </div>
                                 </div>
                                 <div className={styles.statCard}>
                                     <div className={styles.statIcon}>✅</div>
                                     <div className={styles.statInfo}>
                                         <span className={styles.statValue}>{analytics.instructors.verified}</span>
-                                        <span className={styles.statLabel}>Verificiranih</span>
+                                        <span className={styles.statLabel}>已验证数</span>
                                     </div>
                                 </div>
                             </div>
@@ -261,28 +261,28 @@ export default function Admin() {
                                     <div className={styles.statIcon}>📅</div>
                                     <div className={styles.statInfo}>
                                         <span className={styles.statValue}>{analytics.bookings.total_bookings}</span>
-                                        <span className={styles.statLabel}>Ukupno rezervacija</span>
+                                        <span className={styles.statLabel}>总预约数</span>
                                     </div>
                                 </div>
                                 <div className={styles.statCard}>
                                     <div className={styles.statIcon}>✔️</div>
                                     <div className={styles.statInfo}>
                                         <span className={styles.statValue}>{analytics.bookings.completed_lessons}</span>
-                                        <span className={styles.statLabel}>Završenih lekcija</span>
+                                        <span className={styles.statLabel}>已完成课程数</span>
                                     </div>
                                 </div>
                                 <div className={styles.statCard}>
                                     <div className={styles.statIcon}>⭐</div>
                                     <div className={styles.statInfo}>
                                         <span className={styles.statValue}>{analytics.reviews.average_rating}</span>
-                                        <span className={styles.statLabel}>Prosječna ocjena</span>
+                                        <span className={styles.statLabel}>平均评分</span>
                                     </div>
                                 </div>
                                 <div className={styles.statCard}>
                                     <div className={styles.statIcon}>📝</div>
                                     <div className={styles.statInfo}>
                                         <span className={styles.statValue}>{analytics.reviews.total_reviews}</span>
-                                        <span className={styles.statLabel}>Recenzija</span>
+                                        <span className={styles.statLabel}>评价</span>
                                     </div>
                                 </div>
                             </div>
@@ -292,28 +292,28 @@ export default function Admin() {
                                     <div className={styles.statIcon}>🧩</div>
                                     <div className={styles.statInfo}>
                                         <span className={styles.statValue}>{analytics.quizzes.total_quizzes}</span>
-                                        <span className={styles.statLabel}>Kvizova</span>
+                                        <span className={styles.statLabel}>测验数</span>
                                     </div>
                                 </div>
                                 <div className={styles.statCard}>
                                     <div className={styles.statIcon}>🎯</div>
                                     <div className={styles.statInfo}>
                                         <span className={styles.statValue}>{analytics.quizzes.total_attempts}</span>
-                                        <span className={styles.statLabel}>Pokušaja kvizova</span>
+                                        <span className={styles.statLabel}>测验尝试次数</span>
                                     </div>
                                 </div>
                                 <div className={styles.statCard}>
                                     <div className={styles.statIcon}>🚫</div>
                                     <div className={styles.statInfo}>
                                         <span className={styles.statValue}>{analytics.users.suspended}</span>
-                                        <span className={styles.statLabel}>Suspendiranih</span>
+                                        <span className={styles.statLabel}>已封禁ih</span>
                                     </div>
                                 </div>
                                 <div className={styles.statCard}>
                                     <div className={styles.statIcon}>🛡️</div>
                                     <div className={styles.statInfo}>
                                         <span className={styles.statValue}>{analytics.users.admins}</span>
-                                        <span className={styles.statLabel}>Administratora</span>
+                                        <span className={styles.statLabel}>管理员istratora</span>
                                     </div>
                                 </div>
                             </div>
@@ -324,8 +324,8 @@ export default function Admin() {
                                     <table className={styles.table}>
                                         <thead>
                                             <tr>
-                                                <th>Predmet</th>
-                                                <th>Broj rezervacija</th>
+                                                <th>科目</th>
+                                                <th>预约数量</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -350,7 +350,7 @@ export default function Admin() {
                             <div className={styles.filters}>
                                 <input
                                     type="text"
-                                    placeholder="Pretraži po imenu ili emailu..."
+                                    placeholder="按姓名或邮箱搜索..."
                                     value={userFilters.search}
                                     onChange={e => setUserFilters(f => ({ ...f, search: e.target.value }))}
                                 />
@@ -358,20 +358,20 @@ export default function Admin() {
                                     value={userFilters.role}
                                     onChange={e => setUserFilters(f => ({ ...f, role: e.target.value }))}
                                 >
-                                    <option value="">Sve uloge</option>
-                                    <option value="student">Studenti</option>
-                                    <option value="professor">Instruktori</option>
-                                    <option value="admin">Administratori</option>
+                                    <option value="">全部 uloge</option>
+                                    <option value="student">学生i</option>
+                                    <option value="professor">导师</option>
+                                    <option value="admin">管理员istratori</option>
                                 </select>
                                 <select
                                     value={userFilters.status}
                                     onChange={e => setUserFilters(f => ({ ...f, status: e.target.value }))}
                                 >
-                                    <option value="">Svi statusi</option>
-                                    <option value="active">Aktivni</option>
-                                    <option value="suspended">Suspendirani</option>
-                                    <option value="verified">Verificirani instruktori</option>
-                                    <option value="unverified">Neverificirani instruktori</option>
+                                    <option value="">所有状态</option>
+                                    <option value="active">活跃</option>
+                                    <option value="suspended">已封禁i</option>
+                                    <option value="verified">已验证导师i</option>
+                                    <option value="unverified">未验证导师</option>
                                 </select>
                             </div>
 
@@ -392,12 +392,12 @@ export default function Admin() {
                                                 <div className={styles.userDetails}>
                                                     <span className={styles.userName}>
                                                         {u.name} {u.surname}
-                                                        {u.is_admin && <span className={styles.adminBadge}>Admin</span>}
-                                                        {u.is_suspended && <span className={styles.suspendedBadge}>Suspendiran</span>}
+                                                        {u.is_admin && <span className={styles.adminBadge}>管理员</span>}
+                                                        {u.is_suspended && <span className={styles.suspendedBadge}>已封禁</span>}
                                                     </span>
                                                     <span className={styles.userEmail}>{u.email}</span>
                                                     <span className={styles.userMeta}>
-                                                        {u.is_professor ? "👨‍🏫 Instruktor" : "🎓 Student"}
+                                                        {u.is_professor ? "👨‍🏫 导师" : "🎓 学生"}
                                                         {u.is_professor && (u.is_verified ? " ✅ Verificiran" : " ⏳ Čeka verifikaciju")}
                                                         {u.city && ` · 📍 ${u.city}`}
                                                     </span>
@@ -425,9 +425,9 @@ export default function Admin() {
                                                     <>
                                                         <button
                                                             className={styles.adminBtn}
-                                                            onClick={() => handleToggleAdmin(u.id, !u.is_admin)}
+                                                            onClick={() => handleToggle管理员(u.id, !u.is_admin)}
                                                         >
-                                                            {u.is_admin ? "Ukloni admin" : "🛡️ Admin"}
+                                                            {u.is_admin ? "Ukloni admin" : "🛡️ 管理员"}
                                                         </button>
                                                         
                                                         <button
@@ -465,7 +465,7 @@ export default function Admin() {
                                     onChange={e => setNewInterest(e.target.value)}
                                     onKeyDown={e => e.key === "Enter" && handleAddInterest()}
                                 />
-                                <button onClick={handleAddInterest}>+ Dodaj predmet</button>
+                                <button onClick={handleAddInterest}>+ 添加科目</button>
                             </div>
 
                             <div className={styles.interestsList}>

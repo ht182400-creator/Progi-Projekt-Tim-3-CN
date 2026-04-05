@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
-<html lang="hr">
+﻿﻿<!DOCTYPE html>
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Podsjetnik na Sesiju | Fertutor.xyz</title>
+    <title>课程提醒 | Fertutor.xyz</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
         .container { max-width: 600px; margin: 30px auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
@@ -33,39 +33,39 @@
         <h1>Fertutor.xyz</h1>
     </div>
     <div class="content">
-        <h2>Podsjetnik na nadolazeću sesiju</h2>
-        <p>Poštovani/a {{recipientName}},</p>
-        <p>Vaša sesija počinje za otprilike <strong>1 sat</strong>.</p>
+        <h2>即将开始的课程提醒</h2>
+        <p>尊敬的 {{recipientName}}，</p>
+        <p>您的课程大约在 <strong>1 小时</strong> 后开始。</p>
 
         <div class="session-details">
-            <p><span class="label">📚 Predmet:</span> {{subjectName}}</p>
-            <p><span class="label">📅 Datum:</span> {{date}}</p>
-            <p><span class="label">🕒 Vrijeme:</span> {{time}}</p>
-            <p><span class="label">🎓 Tip:</span> {{teachingType}}</p>
-            <p><span class="label">👤 {{roleLabel}}:</span> {{otherPersonName}}</p>
+            <p><span class="label">📚 科目：</span> {{subjectName}}</p>
+            <p><span class="label">📅 日期：</span> {{date}}</p>
+            <p><span class="label">🕒 时间：</span> {{time}}</p>
+            <p><span class="label">🎓 类型：</span> {{teachingType}}</p>
+            <p><span class="label">👤 {{roleLabel}}：</span> {{otherPersonName}}</p>
             
             {{#if isOnline}}
-            <p><span class="label">📍 Lokacija:</span> Online</p>
+            <p><span class="label">📍 地点：</span> 线上</p>
             {{else}}
-            <p><span class="label">📍 Lokacija:</span> {{location}}</p>
+            <p><span class="label">📍 地点：</span> {{location}}</p>
             {{/if}}
         </div>
 
         {{#if isOnline}}
-        <p>Za pristup online sesiji kliknite na gumb ispod:</p>
+        <p>请点击下方按钮进入线上课程：</p>
         <div class="button-container">
-            <a href="{{meetingUrl}}" class="button">PRIDRUŽI SE SESIJI</a>
+            <a href="{{meetingUrl}}" class="button">加入课程</a>
         </div>
         
         <div class="password-box">
-            Lozinka za sobu: <strong>{{meetingPassword}}</strong>
+            会议室密码：<strong>{{meetingPassword}}</strong>
         </div>
         {{/if}}
 
-        <p>Molimo vas da budete spremni 5 minuta prije početka.</p>
+        <p>请提前 5 分钟做好准备。</p>
     </div>
     <div class="footer">
-        <p>Ovo je automatski poslan email. Molimo Vas, ne odgovarajte.</p>
+        <p>此邮件为自动发送，请勿回复。</p>
         <p>&copy; {{year}} Fertutor.xyz</p>
     </div>
 </div>

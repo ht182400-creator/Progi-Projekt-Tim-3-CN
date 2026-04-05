@@ -75,7 +75,7 @@ export default function Quizzes() {
     };
 
     const deleteQuiz = async (quizId) => {
-        if (!window.confirm("Jeste li sigurni da želite obrisati ovaj kviz?")) return;
+        if (!window.confirm("您确定要删除这个测验吗？")) return;
         try {
             await api.delete(`/quizzes/${quizId}`);
             fetchMyQuizzes();
@@ -189,20 +189,20 @@ export default function Quizzes() {
                                 <span className={styles.subject}>{q.interest_name}</span>
                                 <div className={styles.cardMeta}>
                                     <span>❓ {q.question_count} 问题</span>
-                                    <span>👥 {q.attempt_count} pokušaja</span>
+                                    <span>👥 {q.attempt_count} 尝试</span>
                                 </div>
                                 <div className={styles.cardActions}>
                                     <button 
                                         className={q.is_published ? styles.unpublishBtn : styles.publishBtn}
                                         onClick={() => togglePublish(q.id, q.is_published)}
                                     >
-                                        {q.is_published ? "Sakrij" : "Objavi"}
+                                        {q.is_published ? "隐藏" : "发布"}
                                     </button>
                                     <button 
                                         className={styles.deleteBtn}
                                         onClick={() => deleteQuiz(q.id)}
                                     >
-                                        Obriši
+                                        删除
                                     </button>
                                 </div>
                             </div>

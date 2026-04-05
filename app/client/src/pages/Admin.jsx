@@ -31,27 +31,27 @@ export default function Admin() {
     const [errorMsg, setErrorMsg] = useState("");
 
     useEffect(() => {
-        check管理员();
+        checkAdmin ();
     }, []);
 
     useEffect(() => {
-        if (is管理员 && activeTab === "users") {
+        if (isAdmin  && activeTab === "users") {
             fetchUsers();
-        } else if (is管理员 && activeTab === "interests") {
+        } else if (isAdmin  && activeTab === "interests") {
             fetchInterests();
-        } else if (is管理员 && activeTab === "analytics") {
+        } else if (isAdmin  && activeTab === "analytics") {
             fetchAnalytics();
         }
-    }, [is管理员, activeTab, userFilters]);
+    }, [isAdmin , activeTab, userFilters]);
 
-    const check管理员 = async () => {
+    const checkAdmin  = async () => {
         try {
             const res = await axios.get("/admin/check");
-            if (!res.data.is管理员) {
+            if (!res.data.isAdmin ) {
                 navigate("/");
                 return;
             }
-            setIs管理员(true);
+            setIsAdmin (true);
         } catch (err) {
             navigate("/");
         } finally {
@@ -120,10 +120,10 @@ export default function Admin() {
         }
     };
 
-    const handleToggle管理员 = async (userId, make管理员) => {
+    const handleToggleAdmin  = async (userId, makeAdmin ) => {
         try {
-            await axios.patch(`/admin/users/${userId}/admin`, { is管理员: make管理员 });
-            showSuccess(make管理员 ? "Korisnik je sada admin" : "管理员 status uklonjen");
+            await axios.patch(`/admin/users/${userId}/admin`, { isAdmin : makeAdmin  });
+            showSuccess(makeAdmin  ? "用户现在是管理员" : "管理员身份已撤销n");
             fetchUsers();
         } catch (err) {
             showError(err.response?.data?.message || "错误");
@@ -131,10 +131,10 @@ export default function Admin() {
     };
 
     const handleDeleteUser = async (userId) => {
-        if (!confirm("Jeste li sigurni da želite obrisati ovog korisnika?")) return;
+        if (!confirm("您确定要删除此用户吗？")) return;
         try {
             await axios.delete(`/admin/users/${userId}`);
-            showSuccess("Korisnik obrisan");
+            showSuccess("用户已删除");
             fetchUsers();
         } catch (err) {
             showError(err.response?.data?.message || "错误");
@@ -147,7 +147,7 @@ export default function Admin() {
         try {
             await axios.post("/admin/interests", { name: newInterest.trim() });
             setNewInterest("");
-            showSuccess("科目 dodan");
+            showSuccess("科目 已添加");
             fetchInterests();
         } catch (err) {
             showError(err.response?.data?.message || "错误");
@@ -159,7 +159,7 @@ export default function Admin() {
         try {
             await axios.put(`/admin/interests/${id}`, { name: editingInterest.name.trim() });
             setEditingInterest(null);
-            showSuccess("科目 ažuriran");
+            showSuccess("科目 已更新");
             fetchInterests();
         } catch (err) {
             showError(err.response?.data?.message || "错误");
@@ -167,10 +167,10 @@ export default function Admin() {
     };
 
     const handleDeleteInterest = async (id) => {
-        if (!confirm("Jeste li sigurni? Ovo će obrisati sve povezane podatke.")) return;
+        if (!confirm("您确定吗？这将删除所有相关数据。")) return;
         try {
             await axios.delete(`/admin/interests/${id}`);
-            showSuccess("科目 obrisan");
+            showSuccess("科目 已删除");
             fetchInterests();
         } catch (err) {
             showError(err.response?.data?.message || "错误");
@@ -186,7 +186,7 @@ export default function Admin() {
         );
     }
 
-    if (!is管理员) return null;
+    if (!isAdmin ) return null;
 
     return (
         <div className={styles.page}>
@@ -197,13 +197,13 @@ export default function Admin() {
                 {/* Sidebar */}
                 <div className={styles.sidebar}>
                     <div className={styles.sidebarHeader}>
-                        <h2>🛡️ 管理员 Panel</h2>
+                        <h2>🛡️ 管理面板</h2>
                     </div>
                     
                     <nav className={styles.tabNav}>
                         {[
-                            { id: "analytics", icon: "📊", label: "Analitika" },
-                            { id: "users", icon: "👥", label: "Korisnici" },
+                            { id: "analytics", icon: "📊", label: "分析" },
+                            { id: "users", icon: "👥", label: "用户" },
                             { id: "interests", icon: "📚", label: "科目" },
                         ].map(tab => (
                             <button
@@ -223,7 +223,7 @@ export default function Admin() {
                     {/* Analytics Tab */}
                     {activeTab === "analytics" && analytics && (
                         <div className={styles.section}>
-                            <h1>📊 Analitika platforme</h1>
+                            <h1>📊 平台分析</h1>
                             
                             <div className={styles.statsGrid}>
                                 <div className={styles.statCard}>
@@ -313,14 +313,14 @@ export default function Admin() {
                                     <div className={styles.statIcon}>🛡️</div>
                                     <div className={styles.statInfo}>
                                         <span className={styles.statValue}>{analytics.users.admins}</span>
-                                        <span className={styles.statLabel}>管理员istratora</span>
+                                        <span className={styles.statLabel}>管理员</span>
                                     </div>
                                 </div>
                             </div>
 
                             {analytics.topSubjects.length > 0 && (
                                 <div className={styles.tableSection}>
-                                    <h3>📚 Najpopularniji predmeti</h3>
+                                    <h3>📚 最受欢迎的科目</h3>
                                     <table className={styles.table}>
                                         <thead>
                                             <tr>
@@ -345,7 +345,7 @@ export default function Admin() {
                     {/* Users Tab */}
                     {activeTab === "users" && (
                         <div className={styles.section}>
-                            <h1>👥 Upravljanje korisnicima</h1>
+                            <h1>👥 用户管理</h1>
                             
                             <div className={styles.filters}>
                                 <input
@@ -358,10 +358,10 @@ export default function Admin() {
                                     value={userFilters.role}
                                     onChange={e => setUserFilters(f => ({ ...f, role: e.target.value }))}
                                 >
-                                    <option value="">全部 uloge</option>
-                                    <option value="student">学生i</option>
+                                    <option value="">全部 角色</option>
+                                    <option value="student">学生</option>
                                     <option value="professor">导师</option>
-                                    <option value="admin">管理员istratori</option>
+                                    <option value="admin">管理员</option>
                                 </select>
                                 <select
                                     value={userFilters.status}
@@ -369,7 +369,7 @@ export default function Admin() {
                                 >
                                     <option value="">所有状态</option>
                                     <option value="active">活跃</option>
-                                    <option value="suspended">已封禁i</option>
+                                    <option value="suspended">已封禁</option>
                                     <option value="verified">已验证导师i</option>
                                     <option value="unverified">未验证导师</option>
                                 </select>
@@ -392,13 +392,13 @@ export default function Admin() {
                                                 <div className={styles.userDetails}>
                                                     <span className={styles.userName}>
                                                         {u.name} {u.surname}
-                                                        {u.is_admin && <span className={styles.adminBadge}>管理员</span>}
+                                                        {u.is_admin && <span className={styles.adminBadge}>管理员 </span>}
                                                         {u.is_suspended && <span className={styles.suspendedBadge}>已封禁</span>}
                                                     </span>
                                                     <span className={styles.userEmail}>{u.email}</span>
                                                     <span className={styles.userMeta}>
                                                         {u.is_professor ? "👨‍🏫 导师" : "🎓 学生"}
-                                                        {u.is_professor && (u.is_verified ? " ✅ Verificiran" : " ⏳ Čeka verifikaciju")}
+                                                        {u.is_professor && (u.is_verified ? " ✅ 已验证" : " ⏳ 等待验证")}
                                                         {u.city && ` · 📍 ${u.city}`}
                                                     </span>
                                                 </div>
@@ -410,7 +410,7 @@ export default function Admin() {
                                                         className={u.is_verified ? styles.unverifyBtn : styles.verifyBtn}
                                                         onClick={() => handleVerify(u.id, !u.is_verified)}
                                                     >
-                                                        {u.is_verified ? "Ukloni verifikaciju" : "✅ Verificiraj"}
+                                                        {u.is_verified ? "取消验证" : "✅ 验证"}
                                                     </button>
                                                 )}
                                                 
@@ -418,16 +418,16 @@ export default function Admin() {
                                                     className={u.is_suspended ? styles.unsuspendBtn : styles.suspendBtn}
                                                     onClick={() => handleSuspend(u.id, !u.is_suspended)}
                                                 >
-                                                    {u.is_suspended ? "Ukloni suspenziju" : "🚫 Suspendiraj"}
+                                                    {u.is_suspended ? "恢复" : "🚫 停用"}
                                                 </button>
                                                 
                                                 {u.id !== user?.id && (
                                                     <>
                                                         <button
                                                             className={styles.adminBtn}
-                                                            onClick={() => handleToggle管理员(u.id, !u.is_admin)}
+                                                            onClick={() => handleToggleAdmin (u.id, !u.is_admin)}
                                                         >
-                                                            {u.is_admin ? "Ukloni admin" : "🛡️ 管理员"}
+                                                            {u.is_admin ? "移除管理员" : "🛡️ Admin "}
                                                         </button>
                                                         
                                                         <button
@@ -444,7 +444,7 @@ export default function Admin() {
                                     
                                     {users.length === 0 && (
                                         <div className={styles.emptyState}>
-                                            <p>Nema korisnika koji odgovaraju filterima.</p>
+                                            <p>没有符合筛选条件的用户.</p>
                                         </div>
                                     )}
                                 </div>
@@ -455,12 +455,12 @@ export default function Admin() {
                     {/* Interests Tab */}
                     {activeTab === "interests" && (
                         <div className={styles.section}>
-                            <h1>📚 Upravljanje predmetima</h1>
+                            <h1>📚 科目管理</h1>
                             
                             <div className={styles.addInterestForm}>
                                 <input
                                     type="text"
-                                    placeholder="Naziv novog predmeta..."
+                                    placeholder="新科目名称..."
                                     value={newInterest}
                                     onChange={e => setNewInterest(e.target.value)}
                                     onKeyDown={e => e.key === "Enter" && handleAddInterest()}
@@ -487,7 +487,7 @@ export default function Admin() {
                                                 <div className={styles.interestInfo}>
                                                     <span className={styles.interestName}>{i.name}</span>
                                                     <span className={styles.interestStats}>
-                                                        👥 {i.user_count} korisnika · 🧩 {i.quiz_count} kvizova
+                                                        👥 {i.user_count} 用户 · 🧩 {i.quiz_count} 测验
                                                     </span>
                                                 </div>
                                                 <div className={styles.interestActions}>

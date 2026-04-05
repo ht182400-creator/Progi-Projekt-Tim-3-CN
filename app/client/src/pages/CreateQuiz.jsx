@@ -111,23 +111,23 @@ export default function CreateQuiz() {
         try {
             // Validation
             if (!quiz.title.trim()) {
-                throw new Error("Naslov je obavezan.");
+                throw new Error("标题为必填项.");
             }
             if (!quiz.interest_id) {
-                throw new Error("选择te predmet.");
+                throw new Error("选择科目.");
             }
 
             for (let i = 0; i < quiz.questions.length; i++) {
                 const q = quiz.questions[i];
                 if (!q.question_text.trim()) {
-                    throw new Error(`Pitanje ${i + 1} nema tekst.`);
+                    throw new Error(`问题 ${i + 1} 没有文本.`);
                 }
                 const filledAnswers = q.answers.filter(a => a.answer_text.trim());
                 if (filledAnswers.length < 2) {
-                    throw new Error(`Pitanje ${i + 1} mora imati barem 2 odgovora.`);
+                    throw new Error(`问题 ${i + 1} 必须至少有 2 个答案.`);
                 }
                 if (!filledAnswers.some(a => a.is_correct)) {
-                    throw new Error(`Pitanje ${i + 1} mora imati označen točan odgovor.`);
+                    throw new Error(`问题 ${i + 1} 必须标出正确答案.`);
                 }
             }
 
@@ -191,7 +191,7 @@ export default function CreateQuiz() {
                                 value={quiz.interest_id}
                                 onChange={e => setQuiz(q => ({ ...q, interest_id: e.target.value }))}
                             >
-                                <option value="">选择 predmet</option>
+                                <option value="">选择 科目</option>
                                 {interestsList.map(i => (
                                     <option key={i.id} value={i.id}>{i.name}</option>
                                 ))}
@@ -216,14 +216,14 @@ export default function CreateQuiz() {
                     {quiz.questions.map((question, qIndex) => (
                         <div key={qIndex} className={styles.questionCard}>
                             <div className={styles.questionHeader}>
-                                <span className={styles.questionNumber}>Pitanje {qIndex + 1}</span>
+                                <span className={styles.questionNumber}>问题 {qIndex + 1}</span>
                                 {quiz.questions.length > 1 && (
                                     <button 
                                         type="button" 
                                         className={styles.removeBtn}
                                         onClick={() => removeQuestion(qIndex)}
                                     >
-                                        ✕ Ukloni
+                                        ✕ 移除
                                     </button>
                                 )}
                             </div>
@@ -249,7 +249,7 @@ export default function CreateQuiz() {
                                             type="text"
                                             value={answer.answer_text}
                                             onChange={e => updateAnswer(qIndex, aIndex, "answer_text", e.target.value)}
-                                            placeholder={`Odgovor ${aIndex + 1}`}
+                                            placeholder={`答案 ${aIndex + 1}`}
                                             maxLength={300}
                                         />
                                         <label className={styles.correctLabel}>
@@ -259,14 +259,14 @@ export default function CreateQuiz() {
                                                 checked={answer.is_correct}
                                                 onChange={() => updateAnswer(qIndex, aIndex, "is_correct", true)}
                                             />
-                                            Točan
+                                            正确
                                         </label>
                                     </div>
                                 ))}
                             </div>
 
                             <div className={styles.pointsRow}>
-                                <label>分数 za ovo pitanje:</label>
+                                <label>对于这个问题分数 :</label>
                                 <input
                                     type="number"
                                     value={question.points}
@@ -284,7 +284,7 @@ export default function CreateQuiz() {
                         className={styles.addQuestionBtn}
                         onClick={addQuestion}
                     >
-                        + Dodaj pitanje
+                        + 添加问题
                     </button>
                 </div>
 
@@ -294,10 +294,10 @@ export default function CreateQuiz() {
                         className={styles.submitBtn}
                         disabled={loading}
                     >
-                        {loading ? "Spremanje..." : "Spremi kviz"}
+                        {loading ? "保存..." : "保存测验"}
                     </button>
                     <p className={styles.hint}>
-                        Kviz će biti spremljen kao skica. Možete ga objaviti kasnije.
+                    测验将保存为草稿。您可以稍后发布。.
                     </p>
                 </div>
             </form>

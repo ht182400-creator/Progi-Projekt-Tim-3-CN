@@ -1,0 +1,114 @@
+.container {
+    display: flex;
+    height: 100vh;
+    background-color: #e8f5ff;
+}
+
+/* Lijeva strana */
+.leftSide {
+    flex: 0.35;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Desna strana */
+.rightSide {
+    flex: 0.65;
+    background-color: #b9ecff;
+    padding: 60px 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+}
+
+.rightSide h1 {
+    margin-bottom: 40px;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+/* Forma */
+.form {
+    width: 100%;
+    max-width: 850px;
+}
+
+/* Grid interesa */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px 40px;
+    margin-bottom: 40px;
+}
+
+/* Kartica */
+.card {
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 14px 18px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    font-size: 1.05rem;
+    transition: all 0.2s ease;
+}
+
+.card:hover {
+    background-color: #def3ff;
+    transform: scale(1.02);
+}
+
+.card i {
+    color: #4da6d6;
+    font-size: 1.2rem;
+}
+
+.card input {
+    display: none;
+}
+
+.card input:checked + span {
+    font-weight: bold;
+    color: #007acc;
+}
+
+/* Gumbi */
+.buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+.skipBtn,
+.submitBtn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.skipBtn {
+    background-color: #d0d6db;
+    color: #333;
+}
+
+.skipBtn:hover {
+    background-color: #b8c1c7;
+}
+
+.submitBtn {
+    background-color: #61bdf7;
+    color: white;
+}
+
+.submitBtn:hover {
+    background-color: #42a7df;
+    transform: scale(1.03);
+}

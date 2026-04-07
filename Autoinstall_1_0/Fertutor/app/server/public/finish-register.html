@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Finish Register</title>
+</head>
+<body>
+
+<h1>Complete Your Registration</h1>
+
+<form id="finishForm">
+    <input type="email" id="email" readonly /><br>
+
+    <input type="text" id="name" placeholder="Name" required /><br>
+    <input type="text" id="surname" placeholder="Surname" required /><br>
+
+    <label>Are you a student?</label>
+    <input type="checkbox" id="is_student" /><br>
+
+    <div id="studentFields" style="display:none;">
+        <input type="text" id="education" placeholder="Education" /><br>
+        <input type="text" id="city" placeholder="City" /><br>
+    </div>
+
+    <div id="professorFields" style="display:none;">
+        <input type="text" id="teaching" placeholder="Teaching field" /><br>
+        <input type="text" id="city2" placeholder="City" /><br>
+    </div>
+
+    <input type="password" id="password" placeholder="Password" required /><br>
+    <input type="password" id="passwordCheck" placeholder="Repeat Password" required /><br>
+
+    <label>Accept Terms</label>
+    <input type="checkbox" id="terms" required /><br>
+
+    <button type="submit">Finish</button>
+</form>
+
+<script>
+    const BASE_URL = "http://localhost:8080/auth";
+
+    // 1) get email from query
+    const params = new URLSearchParams(window.location.search);
+    const email = params.get("email") || "";
+    document.getElementById("email").value = email;
+
+
+    // 2) show/hide fields based on student
+    const isStudent = document.getElementById("is_student");
+    const studentFields = document.getElementById("studentFields");
+    const professorFields = document.getElementById("professorFields");
+
+    isStudent.addEventListener("change", () => {
+        if(isStudent.checked){
+            studentFields.style.display = "block";
+            professorFields.style.display = "none";
+        } else {
+            studentFields.style.display = "none";
+            professorFields.style.display = "block";
+        }
+    });
+
+    // 3) submit finish-register
+    document.getElementById("finishForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const payload = {
+            email: document.getElementById("email").value,
+            password: document.getElementById("password").value,
+            passwordCheck: document.getElementById("passwordCheck").value,
+            name: document.getElementById("name").value,
+            surname: document.getElementById("surname").value,
+            is_student: isStudent.checked,
+            termsAndConditions: document.getElementById("terms").checked
+        };
+
+        const res = await fetch(`${BASE_URL}/finish-register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        alert(JSON.stringify(data));
+    });
+</script>
+</body>
+</html>

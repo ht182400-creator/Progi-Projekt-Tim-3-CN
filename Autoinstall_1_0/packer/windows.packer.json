@@ -1,0 +1,72 @@
+{
+  "variables": {
+    "iso_path": "",
+    "iso_checksum": "",
+    "vm_name": "Fertutor-Win11",
+    "username": "Admin",
+    "password": "Fertutor123"
+  },
+  "builders": [
+    {
+      "type": "vmware-iso",
+      "vm_name": "{{user `vm_name`}}",
+      "guest_os_type": "windows9-64",
+      "iso_url": "{{user `iso_path`}}",
+      "iso_checksum": "{{user `iso_checksum`}}",
+      "disk_size": 60000,
+      "disk_type_id": "0",
+      "ram_size": 4096,
+      "cpus": 2,
+      "floppy_files": [
+        "scripts/answer.ps1",
+        "scripts/setup_winrm.ps1"
+      ],
+      "boot_wait": "3s",
+      "shutdown_command": "shutdown /s /t 10 /f /d p:4:1 /c \"Shutdown by Packer\"",
+      "shutdown_timeout": "15m",
+      " communicator": "winrm",
+      "winrm_username": "{{user `username`}}",
+      "winrm_password": "{{user `password`}}",
+      "winrm_timeout": "6h",
+      "winrm_use_ssl": true,
+      "winrm_insecure": true
+    },
+    {
+      "type": "virtualbox-iso",
+      "vm_name": "{{user `vm_name`}}",
+      "guest_os_type": "Windows10_64",
+      "iso_url": "{{user `iso_path`}}",
+      "iso_checksum": "{{user `iso_checksum`}}",
+      "disk_size": 60000,
+      "hard_drive_interface": "sata",
+      "ram_size": 4096,
+      "cpus": 2,
+      "floppy_files": [
+        "scripts/answer.ps1",
+        "scripts/setup_winrm.ps1"
+      ],
+      "boot_wait": "3s",
+      "shutdown_command": "shutdown /s /t 10 /f /d p:4:1 /c \"Shutdown by Packer\"",
+      "shutdown_timeout": "15m",
+      "communicator": "winrm",
+      "winrm_username": "{{user `username`}}",
+      "winrm_password": "{{user `password`}}",
+      "winrm_timeout": "6h"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "powershell",
+      "script": "scripts/install_docker.ps1"
+    },
+    {
+      "type": "file",
+      "source": "../Fertutor",
+      "destination": "C:/Users/Admin/Fertutor"
+    },
+    {
+      "type": "powershell",
+      "script": "scripts/setup_autostart.ps1"
+    }
+  ]
+}

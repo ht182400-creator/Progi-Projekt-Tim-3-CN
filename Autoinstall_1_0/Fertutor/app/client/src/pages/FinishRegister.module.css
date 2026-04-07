@@ -1,0 +1,202 @@
+/* src/pages/FinishRegister.module.css */
+
+/* --- Form Container (matching RegisterEmail) --- */
+.formContainer {
+    width: 100%;
+    max-width: 340px;
+}
+
+.formContainer h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+/* --- Profile Avatar Section --- */
+.avatarSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.avatarWrapper {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.avatarLabel {
+    font-size: 0.9rem;
+    color: #4a90a4;
+    font-weight: 500;
+}
+
+/* --- Select Group (matching Input styling) --- */
+.selectGroup {
+    margin-bottom: 20px;
+}
+
+.selectWrapper {
+    position: relative;
+    width: 100%;
+}
+
+.selectWrapper select {
+    width: 100%;
+    padding: 15px;
+    padding-right: 45px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    color: #333;
+}
+
+.selectWrapper select:focus {
+    outline: none;
+    border-color: #4a90a4;
+}
+
+.selectIcon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #4a90a4;
+    pointer-events: none;
+}
+
+/* --- Button Styles (matching RegisterEmail exactly) --- */
+.btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    box-sizing: border-box;
+    margin-bottom: 12px;
+    transition: all 0.2s ease;
+}
+
+.btnPrimary {
+    background-color: #a8c5d8;
+    color: #1a1a2e;
+}
+
+.btnPrimary:hover {
+    background-color: #96b5c9;
+}
+
+.btnPrimary:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* --- Required Fields Note --- */
+.requiredNote {
+    font-size: 0.8rem;
+    color: #666;
+    text-align: center;
+    margin: 20px 0;
+}
+
+/* --- Error Message (matching RegisterEmail) --- */
+.errorMessage {
+    color: #d93025;
+    background-color: #fdd;
+    border: 1px solid #d93025;
+    border-radius: 8px;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.avatarSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 1.5rem 0;
+}
+
+.avatarWrapper {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 3px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+}
+
+.avatarWrapper:hover {
+    border-color: #4a90e2;
+}
+
+.avatarWrapper:hover .avatarOverlay {
+    opacity: 1;
+}
+
+.avatarImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatarOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.avatarOverlay i {
+    color: white;
+    font-size: 1.5rem;
+}
+
+.avatarLabel {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #666;
+    text-align: center;
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 768px) {
+    .formContainer h2 {
+        text-align: center;
+    }
+}

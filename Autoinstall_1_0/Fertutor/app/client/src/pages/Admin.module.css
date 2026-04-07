@@ -1,0 +1,584 @@
+/* Admin Panel - Modern Dashboard Design */
+
+.page {
+    min-height: 100vh;
+    background: #5EA2AF;
+}
+
+/* Loading */
+.loadingPage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    gap: 16px;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #e2e8f0;
+    border-top-color: #1a4a5e;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Notifications */
+.successBanner {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #fff;
+    border-radius: 12px;
+    font-weight: 600;
+    z-index: 1000;
+    animation: slideDown 0.4s ease;
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+}
+
+.errorBanner {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #fff;
+    border-radius: 12px;
+    font-weight: 600;
+    z-index: 1000;
+    box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
+}
+
+@keyframes slideDown {
+    from { transform: translateX(-50%) translateY(-30px); opacity: 0; }
+    to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+/* Container */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 30px 20px;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 30px;
+    min-height: calc(100vh - 60px);
+}
+
+/* Sidebar */
+.sidebar {
+    background: #90DDF0;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    height: fit-content;
+    position: sticky;
+    top: 100px;
+}
+
+.sidebarHeader {
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(26, 74, 94, 0.15);
+    margin-bottom: 20px;
+}
+
+.sidebarHeader h2 {
+    font-size: 1.3rem;
+    color: #1a4a5e;
+    margin: 0;
+}
+
+/* Tab Navigation */
+.tabNav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tabBtn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid transparent;
+    background: rgba(255,255,255,0.5);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.tabBtn:hover {
+    background: rgba(255,255,255,0.8);
+}
+
+.tabActive {
+    background: linear-gradient(135deg, #1a4a5e 0%, #2d6a7a 100%) !important;
+    border-color: #1a4a5e;
+    box-shadow: 0 4px 12px rgba(26, 74, 94, 0.3);
+}
+
+.tabActive .tabIcon,
+.tabActive .tabLabel {
+    color: #fff;
+}
+
+.tabIcon {
+    font-size: 1.3rem;
+}
+
+.tabLabel {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1a4a5e;
+}
+
+/* Content */
+.content {
+    background: #90DDF0;
+    border-radius: 20px;
+    padding: 32px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+}
+
+.section h1 {
+    font-size: 1.5rem;
+    color: #1a4a5e;
+    margin: 0 0 24px 0;
+}
+
+/* Stats Grid */
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.statCard {
+    background: rgba(255,255,255,0.85);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 1px solid rgba(26, 74, 94, 0.1);
+    transition: transform 0.2s;
+}
+
+.statCard:hover {
+    transform: translateY(-2px);
+}
+
+.statIcon {
+    font-size: 2rem;
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #1a4a5e 0%, #2d6a7a 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.statInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.statValue {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a4a5e;
+}
+
+.statLabel {
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+/* Table Section */
+.tableSection {
+    background: rgba(255,255,255,0.85);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 24px;
+}
+
+.tableSection h3 {
+    margin: 0 0 16px 0;
+    color: #1a4a5e;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th,
+.table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid rgba(26, 74, 94, 0.1);
+}
+
+.table th {
+    font-weight: 600;
+    color: #1a4a5e;
+    background: rgba(26, 74, 94, 0.05);
+}
+
+.table tr:hover td {
+    background: rgba(26, 74, 94, 0.03);
+}
+
+/* Filters */
+.filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.filters input,
+.filters select {
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 2px solid rgba(26, 74, 94, 0.15);
+    background: rgba(255,255,255,0.9);
+    font-size: 0.95rem;
+    min-width: 200px;
+}
+
+.filters input:focus,
+.filters select:focus {
+    outline: none;
+    border-color: #1a4a5e;
+    box-shadow: 0 0 0 3px rgba(26, 74, 94, 0.1);
+}
+
+/* Users List */
+.usersList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.userCard {
+    background: rgba(255,255,255,0.85);
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(26, 74, 94, 0.1);
+    transition: all 0.2s;
+}
+
+.userCard:hover {
+    border-color: #1a4a5e;
+}
+
+.userCard.suspended {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.userInfo {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.userAvatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fff;
+}
+
+.userDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.userName {
+    font-weight: 600;
+    color: #1a4a5e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.adminBadge {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.suspendedBadge {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.userEmail {
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+.userMeta {
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+.userActions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.userActions button {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.verifyBtn {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #fff;
+}
+
+.unverifyBtn {
+    background: rgba(16, 185, 129, 0.15);
+    color: #059669;
+}
+
+.suspendBtn {
+    background: rgba(239, 68, 68, 0.15);
+    color: #dc2626;
+}
+
+.unsuspendBtn {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: #fff;
+}
+
+.adminBtn {
+    background: rgba(139, 92, 246, 0.15);
+    color: #7c3aed;
+}
+
+.deleteBtn {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    padding: 8px 12px !important;
+}
+
+.userActions button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+}
+
+/* Add Interest Form */
+.addInterestForm {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.addInterestForm input {
+    flex: 1;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border: 2px solid rgba(26, 74, 94, 0.15);
+    background: rgba(255,255,255,0.9);
+    font-size: 1rem;
+}
+
+.addInterestForm input:focus {
+    outline: none;
+    border-color: #1a4a5e;
+}
+
+.addInterestForm button {
+    padding: 14px 24px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #1a4a5e 0%, #2d6a7a 100%);
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.addInterestForm button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(26, 74, 94, 0.3);
+}
+
+/* Interests List */
+.interestsList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.interestCard {
+    background: rgba(255,255,255,0.85);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(26, 74, 94, 0.1);
+}
+
+.interestInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.interestName {
+    font-weight: 600;
+    color: #1a4a5e;
+}
+
+.interestStats {
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+.interestActions {
+    display: flex;
+    gap: 8px;
+}
+
+.interestActions button {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(26, 74, 94, 0.1);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.interestActions button:hover {
+    background: rgba(26, 74, 94, 0.2);
+}
+
+.editForm {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+.editForm input {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 2px solid #1a4a5e;
+    font-size: 0.95rem;
+}
+
+.editForm button {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+}
+
+/* Empty State */
+.emptyState {
+    text-align: center;
+    padding: 40px;
+    color: #64748b;
+}
+
+.loadingState {
+    text-align: center;
+    padding: 40px;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .statsGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
+    .container {
+        grid-template-columns: 1fr;
+        padding: 20px;
+    }
+
+    .sidebar {
+        position: static;
+    }
+
+    .tabNav {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .tabBtn {
+        flex: 1;
+        min-width: calc(33% - 6px);
+        justify-content: center;
+    }
+
+    .userCard {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+    }
+
+    .userActions {
+        width: 100%;
+    }
+
+    .filters {
+        flex-direction: column;
+    }
+
+    .filters input,
+    .filters select {
+        width: 100%;
+        min-width: unset;
+    }
+}
+
+@media (max-width: 640px) {
+    .statsGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .addInterestForm {
+        flex-direction: column;
+    }
+}

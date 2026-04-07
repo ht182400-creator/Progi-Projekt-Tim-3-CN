@@ -1,0 +1,138 @@
+.footer {
+    background: #0b1220;
+    color: rgba(255,255,255,0.85);
+    padding: 42px 20px 26px;
+}
+
+.inner {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
+    gap: 34px;
+}
+
+.brandCol {}
+
+.brandRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.logo {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+}
+
+.brandName {
+    font-size: 1.3rem;
+    font-weight: 900;
+    color: white;
+}
+
+.brandText {
+    margin: 0 0 16px;
+    line-height: 1.55;
+    color: rgba(255,255,255,0.65);
+    max-width: 320px;
+}
+
+.socials {
+    display: flex;
+    gap: 10px;
+}
+
+.socialBtn {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255,255,255,0.14);
+    color: rgba(255,255,255,0.9);
+    text-decoration: none;
+    transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.socialBtn:hover {
+    transform: translateY(-1px);
+    background: rgba(255,255,255,0.06);
+}
+
+.colTitle {
+    margin: 0 0 12px;
+    color: white;
+    font-weight: 900;
+    font-size: 1rem;
+}
+
+.link {
+    display: block;
+    text-decoration: none;
+    color: rgba(255,255,255,0.65);
+    margin: 10px 0;
+    transition: color 0.12s ease;
+}
+
+.link:hover {
+    color: rgba(255,255,255,0.92);
+}
+
+.contactRow {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.icon {
+    width: 22px;
+    opacity: 0.85;
+}
+
+.contactText {
+    color: rgba(255,255,255,0.7);
+}
+
+
+.divider {
+    height: 1px;
+    background: rgba(255,255,255,0.12);
+    margin: 26px 0 16px;
+}
+
+.bottom {
+    text-align: center;
+    color: rgba(255,255,255,0.45);
+    font-weight: 700;
+    font-size: 0.92rem;
+}
+
+.socialIcon {
+    width: 18px;
+    height: 18px;
+    display: block;
+    filter: brightness(0) invert(1);
+}
+
+/* Responsive */
+@media (max-width: 980px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+    .brandText {
+        max-width: none;
+    }
+    .bottom {
+        text-align: left;
+    }
+}

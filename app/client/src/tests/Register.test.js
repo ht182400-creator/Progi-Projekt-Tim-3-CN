@@ -4,7 +4,7 @@ const { render, screen, waitFor } = require('@testing-library/react');
 require('@testing-library/jest-dom');
 const userEvent = require('@testing-library/user-event').default;
 
-// --- GLOBAL MOCKS (mora biti prije require Register) ---
+// --- 全局 Mock（必须在 require Register 之前定义）---
 
 // Mock react-router-dom (useNavigate + MemoryRouter)
 const mockNavigate = jest.fn();
@@ -18,14 +18,14 @@ jest.mock('react-router-dom', () => {
     };
 });
 
-// Mock api module
+// Mock api 模块
 jest.mock('../api', () => ({
     __esModule: true,
     default: { post: jest.fn() }
 }));
 const api = require('../api').default;
 
-// Mock GoogleLoginButton (mora biti prije require Register)
+// Mock GoogleLoginButton（必须在 require Register 之前）
 jest.mock('../components/GoogleLoginButton', () => {
     const React = require('react');
     return {
@@ -36,14 +36,11 @@ jest.mock('../components/GoogleLoginButton', () => {
     };
 });
 
-// If Register imports images, ensure app/client/__mocks__/fileMock.js exists:
-// module.exports = 'test-file-stub';
-
-// --- Require real modules after mocks ---
+// --- 在 Mock 之后引入真实模块 ---
 const Register = require('../pages/RegisterEmail').default;
 const { AuthContext } = require('../context/AuthContext');
 
-// --- Helper to render Register with AuthContext ---
+// --- 辅助函数：渲染 Register 组件 ---
 const renderRegister = (mockSetUser) => {
     return render(
         React.createElement(
@@ -66,10 +63,10 @@ describe('RegisterEmail component', () => {
         jest.clearAllMocks();
     });
 
-    test('Test 1: Uspjesna registracija emaila, prikazuje popup za potvrdu emaila i ne navigira', async () => {
+    test('测试1：邮箱注册成功，显示邮箱确认弹窗，不跳转', async () => {
         const email = 'novi.korisnik@test.com';
         const password = 'Password123';
-        const successMessage = 'Poslan verifikacijski email.';
+        const successMessage = '验证邮件已发送。';
 
         api.post.mockResolvedValueOnce({ data: { message: successMessage } });
 
@@ -83,23 +80,23 @@ describe('RegisterEmail component', () => {
         const termsCheckbox = screen.getByLabelText(/接受使用条款/i);
         const submitBtn = screen.getByRole('button', { name: /Registracija|Slanje|registracija/i });
 
-        // prije potvrde checkboxa gumb je onemogućen
+        // 勾选复选框前按钮应禁用
         expect(submitBtn).toBeDisabled();
 
         await user.type(emailInput, email);
         await user.type(passwordInput, password);
         await user.type(confirmInput, password);
 
-        // označimo checkbox
+        // 勾选复选框
         await user.click(termsCheckbox);
         expect(termsCheckbox).toBeChecked();
 
-        // sada gumb treba biti omogućen
+        // 勾选后按钮应启用
         expect(submitBtn).not.toBeDisabled();
 
         await user.click(submitBtn);
 
-        // čekamo poziv API i poruku u UI
+        // 等待 API 调用和 UI 更新
         await waitFor(() => {
             expect(api.post).toHaveBeenCalledTimes(1);
             expect(api.post).toHaveBeenCalledWith('/auth/register', {
@@ -110,21 +107,21 @@ describe('RegisterEmail component', () => {
             });
         });
 
-        // UI prikazuje success poruku iz state.message
+        // UI 显示成功消息
         const heading = await screen.findByText(/Provjerite email!/i);
         expect(heading).toBeInTheDocument();
         const msg = screen.getByText(new RegExp(successMessage, 'i'));
         expect(msg).toBeInTheDocument();
 
-        // ne postavljamo user i ne navigiramo jer čekamo potvrdu emaila
+        // 等待邮箱确认，不设置用户也不跳转
         expect(mockSetUser).not.toHaveBeenCalled();
         expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    test('Test 2: Neuspjesna registracija zbog već postojeće adrese prikazuje error', async () => {
+    test('测试2：注册失败（邮箱已存在），显示错误信息', async () => {
         const email = 'postoji@test.com';
         const password = 'Password123';
-        const apiError = 'Korisnik već postoji';
+        const apiError = '用户已存在';
 
         api.post.mockRejectedValueOnce({
             response: { status: 409, data: { message: apiError } }
@@ -159,17 +156,17 @@ describe('RegisterEmail component', () => {
             expect(mockNavigate).not.toHaveBeenCalled();
         });
 
-        // error se prikazuje u <p className={styles.errorMessage}>
+        // 错误消息显示在 UI 中
         const err = await screen.findByText(new RegExp(apiError, 'i'));
         expect(err).toBeInTheDocument();
     });
 
-    test('Test 3: Neuspjesna registracija: lozinka ne zadovoljava minimalne zahtjeve', async () => {
+    test('测试3：注册失败（密码不符合最低要求）', async () => {
         const email = 'novi@test.com';
-        const weakPassword = 'weak'; // manje od 8 znakova, bez velikog slova, broja i posebnog znaka
-        const apiError = 'Lozinka ne zadovoljava minimalne zahtjeve';
+        const weakPassword = 'weak'; // 少于8位，无大写字母、数字和特殊字符
+        const apiError = '密码不符合最低要求';
 
-        // Simuliramo da backend vraća 400 s porukom o neispravnoj lozinki
+        // 模拟后端返回 400，密码不合规
         api.post.mockRejectedValueOnce({
             response: { status: 400, data: { message: apiError } }
         });
@@ -180,8 +177,8 @@ describe('RegisterEmail component', () => {
 
         const emailInput = screen.getByPlaceholderText(/Email Adresa|email/i);
         const passwordInput = screen.getByPlaceholderText(/^Lozinka$/i);
-        const confirmInput = screen.getByPlaceholderText(/Potvrdi Lozinku|potvrdi/i);
-        const termsCheckbox = screen.getByLabelText(/Prihvaćam uvjete korištenja/i);
+        const confirmInput = screen.getByPlaceholderText(/确认密码|potvrdi/i);
+        const termsCheckbox = screen.getByLabelText(/接受使用条款/i);
         const submitBtn = screen.getByRole('button', { name: /Registracija|Slanje|registracija/i });
 
         await user.type(emailInput, email);
@@ -190,7 +187,7 @@ describe('RegisterEmail component', () => {
         await user.click(termsCheckbox);
         await user.click(submitBtn);
 
-        // Očekujemo poziv API-ja s payloadom
+        // 等待 API 调用
         await waitFor(() => {
             expect(api.post).toHaveBeenCalledTimes(1);
             expect(api.post).toHaveBeenCalledWith('/auth/register', {
@@ -200,12 +197,11 @@ describe('RegisterEmail component', () => {
                 termsAndConditions: true
             });
 
-            // ne postavljamo user i ne navigiramo
             expect(mockSetUser).not.toHaveBeenCalled();
             expect(mockNavigate).not.toHaveBeenCalled();
         });
 
-        // Provjera da se error poruka prikazuje u UI
+        // 检查 UI 中显示的错误消息
         const err = await screen.findByText(new RegExp(apiError, 'i'));
         expect(err).toBeInTheDocument();
     });

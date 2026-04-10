@@ -93,8 +93,8 @@ router.post("/slots", verifyToken, async (req, res) => {
 
         // 检查所选时间段是否允许
         if (
-            (profileTeachingType === "Uživo" && teaching_type !== "Uživo") ||
-            (profileTeachingType === "Online" && teaching_type !== "Online")
+            (profileTeachingType === "线下" && teaching_type !== "线下") ||
+            (profileTeachingType === "线上" && teaching_type !== "线上")
         ) {
             return res.status(403).json({
                 message: `无法创建 ${teaching_type} 类型的时间段。您的档案只允许 ${profileTeachingType}。`
@@ -105,7 +105,7 @@ router.post("/slots", verifyToken, async (req, res) => {
             return res.status(400).json({ message: "缺少必要的时间段数据。" });
         }
 
-        if (teaching_type === "Uživo" && !location) {
+        if (teaching_type === "线下" && !location) {
             return res.status(400).json({ message: "线下课程必须提供地点。" });
         }
 
@@ -140,7 +140,7 @@ router.post("/slots", verifyToken, async (req, res) => {
                 finalCapacity,
                 teaching_type,
                 price,
-                teaching_type === "Uživo" ? location : null,
+                teaching_type === "线下" ? location : null,
                 lesson_type,
                 lesson_type === "集体课" ? interest_id : null
             ]
@@ -368,7 +368,7 @@ router.post("/book/:slotId", verifyToken, async (req, res) => {
         // 为在线课程生成 Jitsi 会议 URL（仅在首次预订时）
         let finalMeetingUrl = meeting_url;
         let finalMeetingPassword = null;
-        if (teaching_type === "Online" && !meeting_url) {
+        if (teaching_type === "线上" && !meeting_url) {
             const credentials = generateMeetingCredentials(slotId);
             finalMeetingUrl = credentials.meetingUrl;
             finalMeetingPassword = credentials.password;

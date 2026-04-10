@@ -2,7 +2,7 @@
 const request = require('supertest');
 const express = require('express');
 
-// Mock DB i middleware prije require rute
+// Mock DB and middleware before requiring routes
 jest.mock('../config/db');
 jest.mock('../middleware/verifyTokenOptional', () => (req, res, next) => { req.user = null; next(); });
 
@@ -27,20 +27,20 @@ describe('GET /api/instructors', () => {
                 id : 1,
                 email : 'ivan.horvat@test.hr',
                 is_professor : true,
-                name : 'Ivan',
-                surname : 'Horvat'
+                name : '伊万',
+                surname : '霍尔瓦特'
             }, {
                 id : 2,
                 email : 'ana.kovac@test.hr',
                 is_professor : true,
-                name : 'Ana',
-                surname : 'Kovač'
+                name : '安娜',
+                surname : '科瓦奇'
             }, {
                 id : 3,
                 email : 'marko.babic@test.hr',
                 is_professor : true,
-                name : 'Marko',
-                surname : 'Babić'
+                name : '马尔科',
+                surname : '巴比奇'
             }]
         });
 
@@ -66,8 +66,8 @@ describe('GET /api/instructors/:id', () => {
                 id : 1,
                 email : 'ivan.horvat@test.com',
                 is_professor : true,
-                name : 'Ivan',
-                surname : 'Horvat'
+                name : '伊万',
+                surname : '霍尔瓦特'
             }]
         });
 
@@ -80,6 +80,6 @@ describe('GET /api/instructors/:id', () => {
         pool.query.mockResolvedValueOnce({ rows: [] });
         const res = await request(app).get('/api/instructors/0');
         expect(res.statusCode).toBe(404);
-        expect(res.body).toHaveProperty('message', 'Instruktor nije pronađen');
+        expect(res.body).toHaveProperty('message', '未找到教师');
     });
 });

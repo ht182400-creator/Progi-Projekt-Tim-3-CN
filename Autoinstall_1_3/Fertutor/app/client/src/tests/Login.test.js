@@ -4,7 +4,7 @@ const { render, screen, waitFor } = require('@testing-library/react');
 require('@testing-library/jest-dom');
 const userEvent = require('@testing-library/user-event').default;
 
-// --- GLOBAL MOCKS (must be defined before requiring Login) ---
+// --- 全局 Mock（必须在 require Login 之前定义）---
 
 // Mock react-router-dom (useNavigate + MemoryRouter)
 const mockNavigate = jest.fn();
@@ -18,14 +18,14 @@ jest.mock('react-router-dom', () => {
     };
 });
 
-// Mock api module
+// Mock api 模块
 jest.mock('../api', () => ({
     __esModule: true,
     default: { post: jest.fn() }
 }));
 const api = require('../api').default;
 
-// --- MOCK GoogleLoginButton (mora biti prije require('../pages/Login')) ---
+// Mock GoogleLoginButton（必须在 require Login 之前）
 jest.mock('../components/GoogleLoginButton', () => {
     const React = require('react');
     return {
@@ -36,15 +36,11 @@ jest.mock('../components/GoogleLoginButton', () => {
     };
 });
 
-
-// If Login imports images, ensure app/client/__mocks__/fileMock.js exists:
-// module.exports = 'test-file-stub';
-
-// --- Require real modules after mocks ---
+// --- 在 Mock 之后引入真实模块 ---
 const Login = require('../pages/Login').default;
 const { AuthContext } = require('../context/AuthContext');
 
-// --- Shared helpers and setup ---
+// --- 共享辅助函数 ---
 const renderLogin = (mockSetUser) => {
     return render(
         React.createElement(
@@ -67,7 +63,7 @@ describe('Login component', () => {
         jest.clearAllMocks();
     });
 
-    test('Test 1 - Successful login: calls api.post, sets user and navigates to "/" (homepage)', async () => {
+    test('测试1 - 登录成功：调用 api.post，设置用户并跳转到 "/"（首页）', async () => {
         const testEmail = 'user@test.com';
         const testPassword = 'Password123!';
         const fakeUser = { id: 42, name: 'Test User', email: testEmail };
@@ -98,12 +94,12 @@ describe('Login component', () => {
         });
     });
 
-    test('Test 2 - Failed login (wrong password): shows error and does not set user or navigate', async () => {
+    test('测试2 - 登录失败（密码错误）：显示错误，不设置用户也不跳转', async () => {
         const testEmail = 'user@test.com';
         const wrongPassword = 'WrongPassword';
 
         api.post.mockRejectedValueOnce({
-            response: { status: 401, data: { message: 'Neispravna lozinka' } }
+            response: { status: 401, data: { message: '密码错误' } }
         });
 
         renderLogin(mockSetUser);
@@ -118,7 +114,6 @@ describe('Login component', () => {
         await user.click(submitBtn);
 
         await waitFor(() => {
-            // API called with expected payload
             expect(api.post).toHaveBeenCalledTimes(1);
             expect(api.post).toHaveBeenCalledWith('/auth/login', {
                 email: testEmail,
@@ -126,28 +121,27 @@ describe('Login component', () => {
                 rememberLogin: false
             });
 
-            // No user set and no navigation
             expect(mockSetUser).not.toHaveBeenCalled();
             expect(mockNavigate).not.toHaveBeenCalled();
         });
 
-        // UI error assertion (tries role="alert" first, then text match)
+        // UI 错误断言（先尝试 role="alert"，再尝试文本匹配）
         const alert = screen.queryByRole('alert');
         if (alert) {
-            expect(alert).toHaveTextContent(/lozink|neispravn|pogreš/i);
+            expect(alert).toHaveTextContent(/密码|错误|invalid|wrong/i);
         } else {
-            const textMatch = screen.queryByText(/neispravna lozinka|pogrešna lozinka|invalid password|wrong password/i);
+            const textMatch = screen.queryByText(/密码错误|invalid password|wrong password/i);
             expect(textMatch).toBeTruthy();
         }
     });
 
-    test('Test 3 - Failed login (Non-existent email): shows "user not found" error and does not set user or navigate', async () => {
+    test('测试3 - 登录失败（邮箱不存在）：显示"用户不存在"错误，不设置用户也不跳转', async () => {
         const wrongEmail = 'noone@nowhere.com';
         const anyPassword = 'SomePassword';
 
-        // Simuliramo API rejection s 404 i porukom da korisnik ne postoji
+        // 模拟 API 返回 400，用户不存在
         api.post.mockRejectedValueOnce({
-            response: { status: 400, data: { message: 'Korisnik ne postoji' } }
+            response: { status: 400, data: { message: '用户不存在' } }
         });
 
         renderLogin(mockSetUser);
@@ -161,7 +155,7 @@ describe('Login component', () => {
         await user.type(passwordInput, anyPassword);
         await user.click(submitBtn);
 
-        // Pričekamo da API bude pozvan i da se stanje ažurira
+        // 等待 API 调用完成并更新状态
         await waitFor(() => {
             expect(api.post).toHaveBeenCalledTimes(1);
             expect(api.post).toHaveBeenCalledWith('/auth/login', {
@@ -174,12 +168,12 @@ describe('Login component', () => {
             expect(mockNavigate).not.toHaveBeenCalled();
         });
 
-        // Provjera UI poruke: prvo pokušamo role="alert", inače tražimo tekstualnu poruku
+        // 检查 UI 错误消息
         const alert = screen.queryByRole('alert');
         if (alert) {
-            expect(alert).toHaveTextContent(/korisnik ne postoji|ne postoji korisnik|user not found/i);
+            expect(alert).toHaveTextContent(/用户不存在|user not found/i);
         } else {
-            const textMatch = await screen.findByText(/korisnik ne postoji|ne postoji korisnik|user not found/i);
+            const textMatch = await screen.findByText(/用户不存在|user not found/i);
             expect(textMatch).toBeTruthy();
         }
     });

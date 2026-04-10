@@ -4,7 +4,7 @@ const { render, screen, waitFor } = require('@testing-library/react');
 require('@testing-library/jest-dom');
 const userEvent = require('@testing-library/user-event').default;
 
-// --- GLOBAL MOCKS ---
+// --- 全局 Mock ---
 
 // Mock react-router-dom (useNavigate + useSearchParams + MemoryRouter)
 const mockNavigate = jest.fn();
@@ -21,17 +21,17 @@ jest.mock('react-router-dom', () => {
     };
 });
 
-// Mock api module
+// Mock api 模块
 jest.mock('../api', () => ({
     __esModule: true,
     default: { post: jest.fn() }
 }));
 const api = require('../api').default;
 
-// --- Require real ResetPassword component ---
+// --- 引入真实 ResetPassword 组件 ---
 const ResetPassword = require('../pages/ResetPassword').default;
 
-// --- Helper to render ResetPassword ---
+// --- 辅助函数：渲染 ResetPassword ---
 const renderResetPassword = () => {
     return render(
         React.createElement(
@@ -45,15 +45,15 @@ const renderResetPassword = () => {
 describe('ResetPassword component', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockSearchParams.delete('token'); // reset parametar prije svakog testa
+        mockSearchParams.delete('token'); // 每次测试前重置 token 参数
     });
 
-    test('Test 1: uspješna promjena lozinke s rubnim uvjetima', async () => {
+    test('测试1：密码重置成功（边界条件）', async () => {
         const token = 'valid-token';
-        const password = 'Abcdef1!'; // 8 znakova, veliko slovo, broj, specijalni znak
-        const successMessage = 'Lozinka uspješno promijenjena.';
+        const password = 'Abcdef1!'; // 8位，含大写字母、数字、特殊字符
+        const successMessage = '密码修改成功。';
 
-        // Simuliramo da URL sadrži token
+        // 模拟 URL 包含 token
         mockSearchParams.set('token', token);
 
         api.post.mockResolvedValueOnce({ data: { message: successMessage } });
@@ -85,13 +85,13 @@ describe('ResetPassword component', () => {
         expect(msg).toBeInTheDocument();
     });
 
-    test('Test 2: Klik na gumb "支持" baca grešku jer metoda ne postoji', async () => {
+    test('测试2：点击"支持"按钮抛出错误（方法不存在）', async () => {
         renderResetPassword();
 
         const supportBtn = screen.getByRole('button', { name: /Podrška/i });
         const user = userEvent.setup();
 
-        // Ovdje očekujemo da se dogodi greška
+        // 预期点击时抛出 ReferenceError
         await expect(user.click(supportBtn)).rejects.toThrow(ReferenceError);
     });
 

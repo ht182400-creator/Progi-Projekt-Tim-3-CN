@@ -1,5 +1,5 @@
 #define MyAppName "Fertutor"
-#define MyAppVersion "1.3.0"
+#define MyAppVersion "1.3.1-beta"
 #define MyAppPublisher "Fertutor Team"
 #define MyAppURL "https://github.com/fertutor"
 

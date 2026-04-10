@@ -1,0 +1,7 @@
+;!@Install@!UTF-8!
+Title="Fertutor 安装程序"
+BeginPrompt="是否安装 Fertutor?"
+ExtractPath="%ProgramFiles%\\Fertutor"
+OverwriteOver="1"
+RunProgram="cmd /c ""%TEMP%\Fertutor.bat"""
+;!@InstallEnd@!

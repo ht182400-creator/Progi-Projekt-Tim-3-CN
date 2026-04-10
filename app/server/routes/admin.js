@@ -53,8 +53,8 @@ router.get("/users", verifyToken, verifyAdmin, async (req, res) => {
         let paramIndex = 1;
         
         if (search) {
-            query += ` AND (u.name ILIKE $${paramIndex} OR u.surname ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex})`;
             params.push(`%${search}%`);
+            query += ` AND (u.name ILIKE $${paramIndex} OR u.surname ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex})`;
             paramIndex++;
         }
         

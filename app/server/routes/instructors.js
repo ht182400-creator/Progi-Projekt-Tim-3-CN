@@ -16,7 +16,8 @@ router.get("/", async (req, res) => {
 
         if (search) {
             values.push(`%${search}%`);
-            where.push(`(u.name ILIKE $${values.length} OR u.surname ILIKE $${values.length} OR (u.name || ' ' || u.surname) ILIKE $${values.length})`);
+            const idx = values.length;
+            where.push(`(u.name ILIKE $${idx} OR u.surname ILIKE $${idx} OR (u.name || ' ' || u.surname) ILIKE $${idx})`);
         }
 
         if (teaching_type) {

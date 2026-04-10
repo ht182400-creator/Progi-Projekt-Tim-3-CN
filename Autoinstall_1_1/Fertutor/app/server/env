@@ -1,0 +1,19 @@
+PORT=
+# 单端口生产（npm run start:prod）时通常为 http://localhost:8080；穿透时请改为 https 公网地址（与浏览器一致）
+FRONTEND_URL=http://localhost:5173
+# 可选，默认 0.0.0.0（Docker / 局域网）
+HOST=
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=fertutor
+DB_USER=postgres
+DB_PASSWORD=superuser
+JWT_SECRET=secret
+BACKEND_URL= 
+EMAIL_FROM=
+EMAIL_SERVICE_KEY=
+NODE_ENV=
+VERIFY_SECRET=
+RESET_SECRET=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=

@@ -1,15 +1,6 @@
 @echo off
 chcp 65001 >nul
-
-:: 检查是否有 GUI 参数，跳转到图形界面版本
-if "%1"=="--gui" goto gui
-
-:: 默认运行图形界面选择器
-start "" "%~dp0install-gui.bat"
-exit /b
-
-:gui
-cd /d "%~dp0"
+title Fertutor 安装程序
 
 :: ========== 配置 ==========
 set "INSTALL_DIR=%USERPROFILE%\Fertutor"

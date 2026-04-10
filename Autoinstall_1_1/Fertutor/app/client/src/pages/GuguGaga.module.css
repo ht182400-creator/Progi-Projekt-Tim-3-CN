@@ -1,0 +1,71 @@
+.container {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+    user-select: none;
+}
+
+/* RUNNING / PAUSED */
+.running {
+    animation:
+            flashBg 0.25s infinite alternate,
+            screenShake 0.15s infinite;
+}
+
+.paused {
+    animation-play-state: paused;
+}
+
+/* BACKGROUND FLASH */
+@keyframes flashBg {
+    0% { background-color: #ff00ff; }
+    20% { background-color: #00ffff; }
+    40% { background-color: #ffff00; }
+    60% { background-color: #ff0000; }
+    80% { background-color: #00ff00; }
+    100% { background-color: #0000ff; }
+}
+
+/* SCREEN SHAKE */
+@keyframes screenShake {
+    0% { transform: translate(0, 0); }
+    20% { transform: translate(-6px, 4px); }
+    40% { transform: translate(6px, -4px); }
+    60% { transform: translate(-4px, -6px); }
+    80% { transform: translate(4px, 6px); }
+    100% { transform: translate(0, 0); }
+}
+
+/* IMAGE SHARED STYLE */
+.spinningImage {
+    position: absolute;
+    max-width: 600px;
+
+    animation:
+            spin linear infinite,
+            orbit ease-in-out infinite;
+
+    animation-play-state: inherit;
+}
+
+/* ROTATION */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ORBIT */
+@keyframes orbit {
+    0% { top: 5%; left: 5%; }
+    25% { top: 5%; left: 75%; }
+    50% { top: 75%; left: 75%; }
+    75% { top: 75%; left: 5%; }
+    100% { top: 5%; left: 5%; }
+}

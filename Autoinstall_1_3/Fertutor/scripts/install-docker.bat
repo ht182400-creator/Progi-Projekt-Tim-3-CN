@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 title Fertutor - Docker 安装
@@ -27,6 +27,18 @@ call :log_info "========================================================"
 echo.
 
 :: ============================================================
+:: 环境预探测 → 估算安装时长
+:: ============================================================
+set "HAS_DOCKER=0"
+docker --version >nul 2>&1 && set "HAS_DOCKER=1"
+
+set "EST_SEC=180"
+if "!HAS_DOCKER!"=="0" set /a EST_SEC+=900
+
+call :log_info "[TIMEEST] !EST_SEC!"
+call :log_info "  环境预探测: HAS_DOCKER=!HAS_DOCKER! 预估时长=!EST_SEC!秒"
+
+:: ============================================================
 :: [1/3] 检查/安装 Docker Desktop
 :: ============================================================
 call :log_step "[1/3] 检查 Docker Desktop..."
@@ -47,7 +59,6 @@ if !DOCKER_CHECK_EC! equ 0 (
     if not exist "!DOCKER_INSTALLER!" (
         call :log_error "找不到 Docker Desktop 安装包: !DOCKER_INSTALLER!"
         call :log_info "  请下载: https://www.docker.com/products/docker-desktop/"
-        pause
         exit /b 1
     )
     set "DOCKER_ARGS=install --quiet --accept-license --noreboot"
@@ -62,7 +73,6 @@ if !DOCKER_CHECK_EC! equ 0 (
     call :log_info "  Docker 安装程序退出码: !errorlevel!"
     call :log_info "Docker 安装完成，需要重启后生效"
     call :log_warn "重启后请重新运行安装程序"
-    pause
     exit /b 0
 )
 
@@ -91,11 +101,9 @@ if !errorlevel! neq 0 (
         call :log_info "  已等待 !WAIT! 秒..."
         if !WAIT! lss 120 goto :wait_loop
         call :log_error "Docker 启动超时（120秒），请手动启动后重试"
-        pause
         exit /b 1
     ) else (
         call :log_error "找不到 Docker Desktop 可执行文件，请手动启动"
-        pause
         exit /b 1
     )
 )
@@ -134,7 +142,6 @@ if !DC_EC! neq 0 (
     docker compose --env-file deploy\docker.env logs --tail=100 >> "%LOG_FILE%" 2>&1
     popd
     call :log_error "详细日志已写入: %LOG_FILE%"
-    pause
     exit /b 1
 )
 
@@ -169,8 +176,6 @@ echo   安装日志: %LOG_FILE%
 echo =========================================
 echo.
 timeout /t 3 >nul
-start http://localhost:8080
-pause
 exit /b 0
 
 :: ============================================================

@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 title Fertutor - Windows 本地安装
@@ -32,6 +32,23 @@ call :log_info "========================================================"
 echo.
 
 :: ============================================================
+:: 环境预探测 → 估算安装时长，告知进度条
+:: ============================================================
+set "HAS_NODE=0"
+set "HAS_PG=0"
+node --version >nul 2>&1 && set "HAS_NODE=1"
+if exist "C:\Program Files\PostgreSQL\16\bin\psql.exe" set "HAS_PG=1"
+if exist "C:\Program Files\PostgreSQL\17\bin\psql.exe" set "HAS_PG=1"
+if exist "C:\Program Files\PostgreSQL\15\bin\psql.exe" set "HAS_PG=1"
+
+:: 根据环境估算总时长（秒）
+set "EST_SEC=120"
+if "!HAS_NODE!"=="0" set /a EST_SEC+=900
+if "!HAS_PG!"=="0"   set /a EST_SEC+=600
+call :log_info "[TIMEEST] !EST_SEC!"
+call :log_info "  环境预探测: HAS_NODE=!HAS_NODE! HAS_PG=!HAS_PG! 预估时长=!EST_SEC!秒"
+
+:: ============================================================
 :: [1/5] 检查/安装 Node.js
 :: ============================================================
 call :log_step "[1/5] 检查 Node.js..."
@@ -49,7 +66,6 @@ if !NODE_CHECK_EC! equ 0 (
 ) else (
     call :log_info "Node.js 未检测到，准备安装..."
 )
-
 if "!NODE_OK!"=="0" (
     call :log_info "尝试通过 winget 安装 Node.js 20 LTS..."
     call :log_cmd "winget install --id OpenJS.NodeJS.LTS --version 20 --silent"
@@ -65,7 +81,6 @@ if "!NODE_OK!"=="0" (
     node --version >nul 2>&1
     if !errorlevel! neq 0 (
         call :log_error "Node.js 安装失败，请手动安装: https://nodejs.org"
-        pause
         exit /b 1
     )
     for /f "tokens=*" %%v in ('node --version 2^>nul') do set "NODE_VER=%%v"
@@ -74,14 +89,11 @@ if "!NODE_OK!"=="0" (
     call :log_info "Node.js 安装完成: !NODE_VER! (npm !NPM_VER!)"
 )
 
-:: ============================================================
 :: 查找 node.exe 完整路径（兼容 PATH 未刷新的情况）
-:: ============================================================
 call :find_node_exe
 call :log_info "  NODE_EXE 最终路径: !NODE_EXE!"
 if "!NODE_EXE!"=="" (
     call :log_error "无法定位 node.exe，安装中止"
-    pause
     exit /b 1
 )
 
@@ -121,10 +133,8 @@ if "!PG_OK!"=="1" (
     call :log_info "  安装包路径: !PG_INSTALLER!"
     if not exist "!PG_INSTALLER!" (
         call :log_error "找不到 PostgreSQL 安装包: !PG_INSTALLER!"
-        pause
         exit /b 1
     )
-    :: 读取配置
     set "PG_SUPERACCOUNT=postgres"
     set "PG_SUPERPASSWORD=postgres123"
     set "PG_PORT=5432"
@@ -145,7 +155,6 @@ if "!PG_OK!"=="1" (
         --superaccount !PG_SUPERACCOUNT! --superpassword !PG_SUPERPASSWORD! ^
         --servicename postgresql-x64-16 --serverport !PG_PORT! >> "%LOG_FILE%" 2>&1
     call :log_info "  安装程序退出码: !errorlevel!"
-    :: 等待 5 秒（用 ping 替代 timeout，兼容所有环境）
     ping 127.0.0.1 -n 6 >nul
     if exist "C:\Program Files\PostgreSQL\16\bin\psql.exe" (
         set "PSQL_PATH=C:\Program Files\PostgreSQL\16\bin\psql.exe"
@@ -153,9 +162,7 @@ if "!PG_OK!"=="1" (
         sc query postgresql-x64-16 >> "%LOG_FILE%" 2>&1
     ) else (
         call :log_error "PostgreSQL 安装失败，psql.exe 未找到"
-        call :log_info "  检查 Program Files 目录..."
         dir "C:\Program Files\PostgreSQL\" >> "%LOG_FILE%" 2>&1
-        pause
         exit /b 1
     )
 )
@@ -200,24 +207,31 @@ set "CONN_EC=!errorlevel!"
 call :log_info "  连接测试退出码: !CONN_EC!"
 if !CONN_EC! neq 0 (
     call :log_warn "  数据库连接失败，PostgreSQL 服务可能未启动，尝试启动..."
-    net start postgresql-x64-16 >> "%LOG_FILE%" 2>&1
-    call :log_info "  net start 退出码: !errorlevel!"
+    for %%s in (postgresql-x64-16 postgresql-x64-15 postgresql-x64-17 postgresql) do (
+        net start %%s >> "%LOG_FILE%" 2>&1
+        call :log_info "  net start %%s 退出码: !errorlevel!"
+    )
     ping 127.0.0.1 -n 4 >nul
     "!PSQL_PATH!" -U !PG_SUPERACCOUNT! -p !PG_PORT! -c "SELECT 1;" >> "%LOG_FILE%" 2>&1
-    call :log_info "  重试连接退出码: !errorlevel!"
+    set "RETRY_EC=!errorlevel!"
+    call :log_info "  重试连接退出码: !RETRY_EC!"
+    if !RETRY_EC! neq 0 (
+        call :log_error "PostgreSQL 无法连接，请检查服务是否正常运行"
+        exit /b 1
+    )
 )
 
 :: 创建数据库
 call :log_cmd "psql -U !PG_SUPERACCOUNT! -p !PG_PORT! -c CREATE DATABASE fertutor"
 "!PSQL_PATH!" -U !PG_SUPERACCOUNT! -p !PG_PORT! -c "CREATE DATABASE fertutor;" >> "%LOG_FILE%" 2>&1
-call :log_info "  CREATE DATABASE 退出码: !errorlevel! (若库已存在则为非0，属正常)"
+call :log_info "  CREATE DATABASE 退出码: !errorlevel! (若库已存在则非0，属正常)"
 
 :: 检查是否已初始化
 set "DB_INITIALIZED=0"
 set "TABLE_COUNT=0"
 call :log_info "  检查 users 表是否存在..."
 for /f "usebackq" %%r in (`"!PSQL_PATH!" -U !PG_SUPERACCOUNT! -p !PG_PORT! -d fertutor -tAc "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_name='users';" 2^>nul`) do set "TABLE_COUNT=%%r"
-call :log_info "  users 表计数: !TABLE_COUNT!"
+call :log_info "  users 表行数: !TABLE_COUNT!"
 if "!TABLE_COUNT!"=="1" set "DB_INITIALIZED=1"
 
 if "!DB_INITIALIZED!"=="1" (
@@ -289,9 +303,7 @@ popd
 call :log_info "  npm install (server) 退出码: !NPM_EC!"
 if !NPM_EC! neq 0 (
     call :log_error "后端依赖安装失败 (exitcode=!NPM_EC!)"
-    call :log_info "  检查 npm 缓存状态..."
     call "!NODE_EXE:node.exe=npm.cmd!" cache verify >> "%LOG_FILE%" 2>&1
-    pause
     exit /b 1
 )
 call :log_info "  后端依赖安装成功"
@@ -315,12 +327,10 @@ if exist "!CLIENT_DIST!\index.html" (
     popd
     call :log_info "  npm run build 退出码: !BUILD_EC!"
     if !BUILD_EC! neq 0 (
-        call :log_error "前端构建失败 (exitcode=!BUILD_EC!)，详见日志: %LOG_FILE%"
-        pause
+        call :log_error "前端构建失败 (exitcode=!BUILD_EC!)，请见日志: %LOG_FILE%"
         exit /b 1
     )
     call :log_info "前端构建完成"
-    call :log_info "  dist 目录内容:"
     dir "!CLIENT_DIST!" /s /b >> "%LOG_FILE%" 2>&1
 )
 
@@ -332,7 +342,6 @@ call :log_info "  NSSM 路径: !NSSM!"
 
 if not exist "!NSSM!" (
     call :log_error "找不到 nssm.exe: !NSSM!"
-    pause
     exit /b 1
 )
 
@@ -357,23 +366,21 @@ if not defined NODE_EXE (
 call :log_info "  Node.js 可执行文件: !NODE_EXE!"
 if not defined NODE_EXE (
     call :log_error "找不到 node.exe，无法注册服务！"
-    pause
     exit /b 1
 )
 
 :: 无条件清除旧服务（忽略错误），确保干净安装
 call :log_info "  清除旧服务（如存在）..."
 "!NSSM!" stop "!SERVICE_NAME!" >nul 2>&1
-call :log_info "  nssm stop 退出码: !errorlevel! (非0表示服务不存在或已停止，正常)"
+call :log_info "  nssm stop 退出码: !errorlevel!"
 ping 127.0.0.1 -n 2 >nul
 "!NSSM!" remove "!SERVICE_NAME!" confirm >nul 2>&1
-call :log_info "  nssm remove 退出码: !errorlevel! (非0表示服务不存在，正常)"
-sc stop "!SERVICE_NAME!" >nul 2>&1
-sc delete "!SERVICE_NAME!" >nul 2>&1
-call :log_info "  sc delete 退出码: !errorlevel! (非0表示服务不存在，正常)"
+call :log_info "  nssm remove 退出码: !errorlevel!"
+%SystemRoot%\System32\sc.exe stop "!SERVICE_NAME!" >nul 2>&1
+%SystemRoot%\System32\sc.exe delete "!SERVICE_NAME!" >nul 2>&1
+call :log_info "  sc delete 退出码: !errorlevel!"
 ping 127.0.0.1 -n 2 >nul
 
-:svc_install
 if not exist "%APP_DIR%\logs" mkdir "%APP_DIR%\logs"
 
 call :log_cmd "nssm install !SERVICE_NAME! [node.exe] server.js"
@@ -382,7 +389,6 @@ set "NSSM_INSTALL_EC=!errorlevel!"
 call :log_info "  nssm install 退出码: !NSSM_INSTALL_EC!"
 if !NSSM_INSTALL_EC! neq 0 (
     call :log_error "nssm install 失败 (exitcode=!NSSM_INSTALL_EC!)"
-    pause
     exit /b 1
 )
 "!NSSM!" set "!SERVICE_NAME!" AppDirectory    "%APP_DIR%\app\server"   >> "%LOG_FILE%" 2>&1
@@ -395,45 +401,21 @@ if !NSSM_INSTALL_EC! neq 0 (
 "!NSSM!" set "!SERVICE_NAME!" AppRotateFiles  1                        >> "%LOG_FILE%" 2>&1
 "!NSSM!" set "!SERVICE_NAME!" AppRotateBytes  10485760                 >> "%LOG_FILE%" 2>&1
 
-call :log_cmd "nssm start !SERVICE_NAME!"
-"!NSSM!" start "!SERVICE_NAME!" >> "%LOG_FILE%" 2>&1
+:: 用 sc start 异步启动（不等待服务进入 RUNNING，立即返回）
+call :log_cmd "sc start !SERVICE_NAME!"
+%SystemRoot%\System32\sc.exe start "!SERVICE_NAME!" >> "%LOG_FILE%" 2>&1
 set "NSSM_EC=!errorlevel!"
-call :log_info "  nssm start 退出码: !NSSM_EC!"
-if !NSSM_EC! equ 0 (
-    call :log_info "服务启动成功"
-    ping 127.0.0.1 -n 4 >nul
-    sc query "!SERVICE_NAME!" >> "%LOG_FILE%" 2>&1
-    call :log_info "  等待服务就绪（5秒）..."
-    ping 127.0.0.1 -n 6 >nul
-    call :log_cmd "curl -s -o nul -w %%{http_code} http://localhost:8080"
-    for /f "tokens=*" %%r in ('curl -s -o nul -w "%%{http_code}" http://localhost:8080 2^>nul') do (
-        call :log_info "  HTTP 响应码: %%r"
-    )
-) else (
-    call :log_error "服务启动失败 (exitcode=!NSSM_EC!)，请检查: %APP_DIR%\logs\server-error.log"
-    if exist "%APP_DIR%\logs\server-error.log" (
-        call :log_info "  --- server-error.log 最后20行 ---"
-        powershell -Command "Get-Content '%APP_DIR%\logs\server-error.log' -Tail 20 | ForEach-Object { Add-Content '%LOG_FILE%' \"  $_\" }" 2>nul
-    )
-)
+call :log_info "  sc start 退出码: !NSSM_EC! (1056=已在运行，均属正常)"
+call :log_info "服务已发送启动指令，后台继续启动中..."
+ping 127.0.0.1 -n 4 >nul
+%SystemRoot%\System32\sc.exe query "!SERVICE_NAME!" >> "%LOG_FILE%" 2>&1
 
 call :log_info "========================================================"
 call :log_info "  本地安装完成  %date% %time%"
 call :log_info "  日志文件: %LOG_FILE%"
 call :log_info "========================================================"
 
-echo.
-echo =========================================
-echo   安装完成！
-echo   访问: http://localhost:8080
-echo   服务管理: services.msc
-echo   日志目录: %APP_DIR%\logs\
-echo   安装日志: %LOG_FILE%
-echo =========================================
-echo.
 ping 127.0.0.1 -n 4 >nul
-start http://localhost:8080
-pause
 exit /b 0
 
 :: ============================================================
@@ -475,16 +457,13 @@ goto :eof
 :: ============================================================
 
 :: 查找 node.exe 完整路径
-:: 优先级: PATH -> 注册表 -> 常见安装目录
 :find_node_exe
 set "NODE_EXE="
-:: 1. 先从 PATH 找
 for /f "tokens=*" %%p in ('where node 2^>nul') do (
     if "!NODE_EXE!"=="" set "NODE_EXE=%%p"
 )
 if defined NODE_EXE goto :eof
 
-:: 2. 从注册表读 Node.js 安装目录
 for /f "tokens=2*" %%a in ('reg query "HKLM\SOFTWARE\Node.js" /v InstallPath 2^>nul') do (
     if exist "%%b\node.exe" set "NODE_EXE=%%b\node.exe"
 )
@@ -495,7 +474,6 @@ for /f "tokens=2*" %%a in ('reg query "HKLM\SOFTWARE\WOW6432Node\Node.js" /v Ins
 )
 if defined NODE_EXE goto :eof
 
-:: 3. 扫描常见安装路径
 for %%d in (
     "C:\Program Files\nodejs\node.exe"
     "C:\Program Files (x86)\nodejs\node.exe"
@@ -506,7 +484,6 @@ for %%d in (
 )
 if defined NODE_EXE goto :eof
 
-:: 4. 扫描 AppData\Roaming\nvm 下的版本
 for /d %%d in ("%APPDATA%\nvm\v*") do (
     if exist "%%d\node.exe" (
         if "!NODE_EXE!"=="" set "NODE_EXE=%%d\node.exe"
@@ -521,7 +498,7 @@ set "PATH=!SYS_PATH!;!USR_PATH!"
 goto :eof
 
 :download_nodejs
-call :log_info "从官网下载 Node.js 20 LTS MSI..."
+call :log_info "从官网下载 Node.js 20 LTS..."
 set "NODE_URL=https://nodejs.org/dist/v20.19.0/node-v20.19.0-x64.msi"
 set "NODE_MSI=%TEMP%\node-v20-x64.msi"
 call :log_cmd "Invoke-WebRequest %NODE_URL%"

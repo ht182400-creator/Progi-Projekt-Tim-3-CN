@@ -1,5 +1,5 @@
 ﻿#define MyAppName "Fertutor"
-#define MyAppVersion "1.3.1-beta"
+#define MyAppVersion "1.3.2"
 #define MyAppPublisher "Fertutor Team"
 #define MyAppURL "https://github.com/fertutor"
 
@@ -93,6 +93,7 @@ var
   LogMemo:      TMemo;
   StatusFile:   String;
   ScriptDone:   Boolean;
+  InstallFailed: Boolean;
 
 // ── 消息泵：真正驱动 UI 重绘 ───────────────────────────────
 procedure PumpMessages;
@@ -194,7 +195,8 @@ end;
 
 procedure InitializeWizard;
 begin
-  ScriptDone := False;
+  ScriptDone    := False;
+  InstallFailed := False;
   CreateModePage;
   CreateProgressPage;
 end;
@@ -348,7 +350,8 @@ begin
       // ── 致命错误 ─────────────────────────────────────────
       if (not FatalSeen) and (Pos('[FATAL]', LastLine) > 0) then
       begin
-        FatalSeen := True;
+        FatalSeen     := True;
+        InstallFailed := True;
         LblStatus.Caption := '安装失败';
         LblDetail.Caption := '请查看下方日志了解详情';
         PumpMessages;
@@ -390,6 +393,7 @@ end;
 procedure CurPageChanged(CurPageID: Integer);
 var
   Script: String;
+  J: Integer;
 begin
   if (not ScriptDone) and (CurPageID = ProgressPage.ID) then
   begin
@@ -415,5 +419,23 @@ begin
     PumpMessages;
     // 自动前进到完成页
     PostMessage(WizardForm.NextButton.Handle, $00F5, 0, 0);
+  end;
+
+  // 完成页：根据安装结果显示不同文字
+  if CurPageID = wpFinished then
+  begin
+    if InstallFailed then
+    begin
+      WizardForm.FinishedLabel.Caption :=
+        '安装未能成功完成。' + Chr(13) + Chr(10) + Chr(13) + Chr(10) +
+        '请查看安装日志了解详情：' + Chr(13) + Chr(10) +
+        ExpandConstant('{app}\install.log') + Chr(13) + Chr(10) + Chr(13) + Chr(10) +
+        '修复问题后请重新运行安装程序。';
+      // 隐藏所有勾选项（包括 README 和打开应用）
+      WizardForm.RunList.Visible := False;
+      // 逐个取消勾选，防止 Finish 时执行
+      for J := 0 to WizardForm.RunList.Items.Count - 1 do
+        WizardForm.RunList.Checked[J] := False;
+    end;
   end;
 end;

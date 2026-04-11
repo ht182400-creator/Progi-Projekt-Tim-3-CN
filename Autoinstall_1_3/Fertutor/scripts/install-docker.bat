@@ -7,6 +7,10 @@ set "PATH=C:\Windows\System32;C:\Windows;C:\Windows\System32\Wbem;%PATH%"
 set "LOG_FILE=%~dp0..\install.log"
 set "STATUS_FILE=%~dp0..\install.status"
 set "APP_DIR=%~dp0.."
+:: 解析 APP_DIR 为绝对路径（去掉 .. 避免 Docker 路径问题）
+pushd "%APP_DIR%"
+set "APP_DIR=%CD%"
+popd
 
 :: 清空状态文件
 echo. > "%STATUS_FILE%"
@@ -42,17 +46,22 @@ call :log_info "  预探测: HAS_DOCKER=!HAS_DOCKER! 预估=!EST_SEC!秒"
 
 :: 磁盘空间检查（Docker 镜像需要至少 5GB）
 call :log_info "检查磁盘空间..."
-for /f "tokens=3" %%s in ('dir /-c "%SystemDrive%\" 2^>nul ^| findstr /i "bytes free"') do set "FREE_BYTES=%%s"
-set "FREE_BYTES=!FREE_BYTES:,=!"
-if defined FREE_BYTES (
-    set /a FREE_GB=!FREE_BYTES! / 1073741824
-    call :log_info "  可用空间: !FREE_GB! GB"
-    if !FREE_GB! lss 5 (
+set "FREE_GB=0"
+powershell -NoProfile -Command "$gb=[math]::Floor((Get-PSDrive C).Free/1GB); [System.IO.File]::WriteAllText('%TEMP%\fertutor_disk.txt',$gb.ToString())" 2>nul
+if exist "%TEMP%\fertutor_disk.txt" (
+    set /p FREE_GB=<"%TEMP%\fertutor_disk.txt"
+    del "%TEMP%\fertutor_disk.txt" >nul 2>&1
+)
+set "FREE_GB=!FREE_GB: =!"
+set "FREE_GB=!FREE_GB:	=!"
+call :log_info "  可用空间: !FREE_GB! GB"
+if !FREE_GB! lss 5 (
+    if "!FREE_GB!"=="0" (
+        call :log_warn "  无法检测磁盘空间，继续安装"
+    ) else (
         call :log_fatal "磁盘空间不足（Docker 模式需要至少 5GB，当前 !FREE_GB! GB）"
         exit /b 1
     )
-) else (
-    call :log_warn "  无法检测磁盘空间，继续安装"
 )
 
 :: ============================================================
@@ -120,6 +129,16 @@ if !errorlevel! neq 0 (
 :docker_ready
 call :log_info "Docker 引擎就绪"
 
+:: 清理可能失效的镜像源配置，避免拉取镜像失败
+call :log_info "  检查 Docker 镜像源配置..."
+set "DOCKER_CONFIG=%USERPROFILE%\.docker\daemon.json"
+if exist "!DOCKER_CONFIG!" (
+    findstr /i "mirrors" "!DOCKER_CONFIG!" >nul 2>&1
+    if !errorlevel! equ 0 (
+        call :log_warn "  检测到镜像源配置，如拉取失败请手动清除 !DOCKER_CONFIG! 中的 registry-mirrors"
+    )
+)
+
 :: ============================================================
 :: [3/3] 生成配置并启动服务
 :: ============================================================
@@ -150,8 +169,30 @@ pushd "%APP_DIR%"
 :: 先停止旧容器（如果存在），确保干净启动
 docker compose --env-file deploy\docker.env down >nul 2>&1
 call :log_info "  旧容器已停止（如存在）"
-docker compose --env-file deploy\docker.env up --build -d >> "%LOG_FILE%" 2>&1
-set "DC_EC=!errorlevel!"
+
+:: 后台启动构建，同时轮询进度
+call :log_info "  开始构建镜像并启动容器（可能需要几分钟）..."
+start /b docker compose --env-file deploy\docker.env up --build -d >> "%LOG_FILE%" 2>&1
+
+:: 轮询等待，每5秒报告一次状态（最多等15分钟）
+set /a WAIT=0
+:compose_wait
+timeout /t 5 >nul
+set /a WAIT+=5
+docker compose --env-file deploy\docker.env ps --format "table {{.Name}}\t{{.Status}}" 2>nul | findstr /i "running\|starting\|healthy" >nul 2>&1
+if !errorlevel! equ 0 (
+    call :log_info "  容器启动中... 已等待 !WAIT! 秒"
+)
+:: 检查是否全部 running
+for /f "tokens=*" %%c in ('docker compose --env-file deploy\docker.env ps --status running 2^>nul ^| find /c "running"') do set "RUNNING_COUNT=%%c"
+if "!RUNNING_COUNT!" geq "2" goto :compose_done
+if !WAIT! lss 900 goto :compose_wait
+
+:compose_done
+docker compose --env-file deploy\docker.env ps >> "%LOG_FILE%" 2>&1
+set "DC_EC=0"
+docker compose --env-file deploy\docker.env ps --status running 2>nul | findstr /i "fertutor" >nul 2>&1
+if !errorlevel! neq 0 set "DC_EC=1"
 popd
 call :log_info "  docker compose up 退出码: !DC_EC!"
 

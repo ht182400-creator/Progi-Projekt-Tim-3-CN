@@ -9,6 +9,11 @@ set "STATUS_FILE=%~dp0..\install.status"
 set "APP_DIR=%~dp0.."
 set "NSSM=%~dp0..\tools\nssm.exe"
 set "SERVICE_NAME=Fertutor"
+:: 解析 APP_DIR 为绝对路径
+pushd "%APP_DIR%"
+set "APP_DIR=%CD%"
+popd
+set "NSSM=%APP_DIR%\tools\nssm.exe"
 
 :: 清空状态文件（新安装开始）
 echo. > "%STATUS_FILE%"
@@ -49,17 +54,22 @@ call :log_info "  预探测: HAS_NODE=!HAS_NODE! HAS_PG=!HAS_PG! 预估=!EST_SEC
 
 :: 磁盘空间检查（需要至少 2GB）
 call :log_info "检查磁盘空间..."
-for /f "tokens=3" %%s in ('dir /-c "%SystemDrive%\" 2^>nul ^| findstr /i "bytes free"') do set "FREE_BYTES=%%s"
-set "FREE_BYTES=!FREE_BYTES:,=!"
-if defined FREE_BYTES (
-    set /a FREE_GB=!FREE_BYTES! / 1073741824
-    call :log_info "  可用空间: !FREE_GB! GB"
-    if !FREE_GB! lss 2 (
+set "FREE_GB=0"
+powershell -NoProfile -Command "$gb=[math]::Floor((Get-PSDrive C).Free/1GB); [System.IO.File]::WriteAllText('%TEMP%\fertutor_disk.txt',$gb.ToString())" 2>nul
+if exist "%TEMP%\fertutor_disk.txt" (
+    set /p FREE_GB=<"%TEMP%\fertutor_disk.txt"
+    del "%TEMP%\fertutor_disk.txt" >nul 2>&1
+)
+set "FREE_GB=!FREE_GB: =!"
+set "FREE_GB=!FREE_GB:	=!"
+call :log_info "  可用空间: !FREE_GB! GB"
+if !FREE_GB! lss 2 (
+    if "!FREE_GB!"=="0" (
+        call :log_warn "  无法检测磁盘空间，继续安装"
+    ) else (
         call :log_fatal "磁盘空间不足（需要至少 2GB，当前 !FREE_GB! GB）"
         exit /b 1
     )
-) else (
-    call :log_warn "  无法检测磁盘空间，继续安装"
 )
 
 :: ============================================================

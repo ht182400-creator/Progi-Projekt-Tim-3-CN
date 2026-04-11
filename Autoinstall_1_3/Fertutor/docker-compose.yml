@@ -53,8 +53,8 @@ services:
 
   client:
     build:
-      context: ./app/client
-      dockerfile: ../Dockerfile.client
+      context: .
+      dockerfile: Dockerfile.client
     env_file:
       - deploy/docker.env
     ports:

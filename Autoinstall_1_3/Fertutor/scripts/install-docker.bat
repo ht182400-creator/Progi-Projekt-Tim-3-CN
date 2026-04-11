@@ -12,8 +12,15 @@ set "APP_DIR=%~dp0.."
 echo. > "%STATUS_FILE%"
 
 :: ============================================================
-:: 初始化日志
+:: 初始化日志（超过 5MB 则轮转）
 :: ============================================================
+if exist "%LOG_FILE%" (
+    for %%s in ("%LOG_FILE%") do (
+        if %%~zs gtr 5242880 (
+            move /y "%LOG_FILE%" "%~dp0..\install.log.bak" >nul 2>&1
+        )
+    )
+)
 echo. >> "%LOG_FILE%"
 call :log_info "========================================================"
 call :log_info "  Fertutor Docker 安装模式  开始"
@@ -32,6 +39,21 @@ set "EST_SEC=180"
 if "!HAS_DOCKER!"=="0" set /a EST_SEC+=900
 call :log_info "[TIMEEST] !EST_SEC!"
 call :log_info "  预探测: HAS_DOCKER=!HAS_DOCKER! 预估=!EST_SEC!秒"
+
+:: 磁盘空间检查（Docker 镜像需要至少 5GB）
+call :log_info "检查磁盘空间..."
+for /f "tokens=3" %%s in ('dir /-c "%SystemDrive%\" 2^>nul ^| findstr /i "bytes free"') do set "FREE_BYTES=%%s"
+set "FREE_BYTES=!FREE_BYTES:,=!"
+if defined FREE_BYTES (
+    set /a FREE_GB=!FREE_BYTES! / 1073741824
+    call :log_info "  可用空间: !FREE_GB! GB"
+    if !FREE_GB! lss 5 (
+        call :log_fatal "磁盘空间不足（Docker 模式需要至少 5GB，当前 !FREE_GB! GB）"
+        exit /b 1
+    )
+) else (
+    call :log_warn "  无法检测磁盘空间，继续安装"
+)
 
 :: ============================================================
 :: [1/3] 检查/安装 Docker Desktop
@@ -103,6 +125,17 @@ call :log_info "Docker 引擎就绪"
 :: ============================================================
 call :log_step "[3/3] 启动 Docker Compose 服务..."
 
+:: 检查端口冲突
+call :log_info "  检查端口占用..."
+for %%p in (8080 5173) do (
+    %SystemRoot%\System32\netstat.exe -ano | findstr ":%%p " | findstr "LISTENING" >nul 2>&1
+    if !errorlevel! equ 0 (
+        call :log_warn "  端口 %%p 已被占用，容器可能无法绑定"
+    ) else (
+        call :log_info "  端口 %%p 可用"
+    )
+)
+
 if not exist "%APP_DIR%\deploy\docker.env" (
     call :log_info "生成 docker.env 配置文件..."
     copy "%APP_DIR%\deploy\docker.env.example" "%APP_DIR%\deploy\docker.env" >nul
@@ -133,9 +166,22 @@ if !DC_EC! neq 0 (
 :: 等待服务就绪
 call :log_info "  等待服务就绪（10秒）..."
 timeout /t 10 >nul
-for /f "tokens=*" %%r in ('curl -s -o nul -w "%%{http_code}" http://localhost:8080 2^>nul') do (
+
+:: 防火墙规则
+call :log_info "  添加防火墙规则..."
+netsh advfirewall firewall delete rule name="Fertutor Web Server" >nul 2>&1
+netsh advfirewall firewall add rule name="Fertutor Web Server" dir=in action=allow protocol=TCP localport=8080 >nul 2>&1
+call :log_info "  防火墙规则: !errorlevel!"
+
+:: 安装后验证
+for /f "tokens=*" %%r in ('curl -s -o nul -w "%%{http_code}" --connect-timeout 5 http://localhost:8080 2^>nul') do (
     call :log_info "  后端 HTTP 响应码: %%r"
+    if "%%r"=="200" call :log_info "  服务验证通过"
+    if "%%r"=="000" call :log_warn "  服务暂未响应，可能仍在启动中"
 )
+pushd "%APP_DIR%"
+docker compose --env-file deploy\docker.env ps >> "%LOG_FILE%" 2>&1
+popd
 
 call :log_info "========================================================"
 call :log_info "  Docker 安装完成  %date% %time%"

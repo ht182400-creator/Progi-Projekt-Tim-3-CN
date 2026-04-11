@@ -14,8 +14,15 @@ set "SERVICE_NAME=Fertutor"
 echo. > "%STATUS_FILE%"
 
 :: ============================================================
-:: 初始化日志
+:: 初始化日志（超过 5MB 则轮转）
 :: ============================================================
+if exist "%LOG_FILE%" (
+    for %%s in ("%LOG_FILE%") do (
+        if %%~zs gtr 5242880 (
+            move /y "%LOG_FILE%" "%~dp0..\install.log.bak" >nul 2>&1
+        )
+    )
+)
 echo. >> "%LOG_FILE%"
 call :log_info "========================================================"
 call :log_info "  Fertutor Windows 本地安装  开始"
@@ -39,6 +46,21 @@ if "!HAS_NODE!"=="0" set /a EST_SEC+=900
 if "!HAS_PG!"=="0"   set /a EST_SEC+=600
 call :log_info "[TIMEEST] !EST_SEC!"
 call :log_info "  预探测: HAS_NODE=!HAS_NODE! HAS_PG=!HAS_PG! 预估=!EST_SEC!秒"
+
+:: 磁盘空间检查（需要至少 2GB）
+call :log_info "检查磁盘空间..."
+for /f "tokens=3" %%s in ('dir /-c "%SystemDrive%\" 2^>nul ^| findstr /i "bytes free"') do set "FREE_BYTES=%%s"
+set "FREE_BYTES=!FREE_BYTES:,=!"
+if defined FREE_BYTES (
+    set /a FREE_GB=!FREE_BYTES! / 1073741824
+    call :log_info "  可用空间: !FREE_GB! GB"
+    if !FREE_GB! lss 2 (
+        call :log_fatal "磁盘空间不足（需要至少 2GB，当前 !FREE_GB! GB）"
+        exit /b 1
+    )
+) else (
+    call :log_warn "  无法检测磁盘空间，继续安装"
+)
 
 :: ============================================================
 :: [1/5] 检查/安装 Node.js
@@ -222,7 +244,12 @@ for /f "usebackq" %%r in (`"!PSQL_PATH!" -U !PG_SUPERACCOUNT! -p !PG_PORT! -d fe
 call :log_info "  users 表存在: !TABLE_COUNT!"
 
 if "!TABLE_COUNT!"=="1" (
-    call :log_skip "数据库已初始化，跳过导入"
+    call :log_skip "数据库已初始化，检查并执行新 migration..."
+    :: 即使已初始化，也执行 migrations 目录下的新文件
+    for %%f in ("%APP_DIR%\app\server\baze\migrations\*.sql") do (
+        "!PSQL_PATH!" -U !PG_SUPERACCOUNT! -p !PG_PORT! -d fertutor -f "%%f" >> "%LOG_FILE%" 2>&1
+        call :log_info "  migration %%~nxf: !errorlevel!"
+    )
 ) else (
     call :log_info "导入数据库结构..."
     "!PSQL_PATH!" -U !PG_SUPERACCOUNT! -p !PG_PORT! -d fertutor -f "%APP_DIR%\app\server\baze\baze.sql" >> "%LOG_FILE%" 2>&1
@@ -305,6 +332,21 @@ if exist "!CLIENT_DIST!\index.html" (
 :: ============================================================
 call :log_step "[5/5] 注册 Windows 服务 (NSSM)..."
 
+:: 检查 8080 端口是否被占用
+call :log_info "  检查 8080 端口..."
+%SystemRoot%\System32\netstat.exe -ano | findstr ":8080 " | findstr "LISTENING" >nul 2>&1
+if !errorlevel! equ 0 (
+    for /f "tokens=5" %%p in ('%SystemRoot%\System32\netstat.exe -ano ^| findstr ":8080 " ^| findstr "LISTENING"') do (
+        call :log_warn "  8080 端口被 PID %%p 占用"
+        for /f "tokens=1" %%n in ('tasklist /fi "PID eq %%p" /fo csv /nh 2^>nul') do (
+            call :log_warn "  占用进程: %%n (PID %%p)"
+        )
+    )
+    call :log_warn "  8080 端口已被占用，服务可能无法启动，请检查后重试"
+) else (
+    call :log_info "  8080 端口可用"
+)
+
 if not exist "!NSSM!" (
     call :log_fatal "找不到 nssm.exe: !NSSM!"
     exit /b 1
@@ -353,6 +395,31 @@ if !NSSM_EC! neq 0 (
 
 %SystemRoot%\System32\sc.exe start "!SERVICE_NAME!" >> "%LOG_FILE%" 2>&1
 call :log_info "  sc start: !errorlevel! (1056=已在运行，正常)"
+
+:: 防火墙规则
+call :log_info "  添加防火墙规则 (8080)..."
+netsh advfirewall firewall delete rule name="Fertutor Web Server" >nul 2>&1
+netsh advfirewall firewall add rule name="Fertutor Web Server" dir=in action=allow protocol=TCP localport=8080 >nul 2>&1
+call :log_info "  防火墙规则: !errorlevel!"
+
+:: 安装后验证（等服务启动）
+call :log_info "  等待服务就绪（8秒）..."
+ping 127.0.0.1 -n 9 >nul
+%SystemRoot%\System32\sc.exe query "!SERVICE_NAME!" | findstr "RUNNING" >nul 2>&1
+if !errorlevel! equ 0 (
+    call :log_info "  服务状态: RUNNING"
+) else (
+    call :log_warn "  服务尚未 RUNNING，可能仍在启动中"
+)
+for /f "tokens=*" %%r in ('curl -s -o nul -w "%%{http_code}" --connect-timeout 5 http://localhost:8080 2^>nul') do (
+    call :log_info "  HTTP 响应码: %%r"
+)
+"!PSQL_PATH!" -U !PG_SUPERACCOUNT! -p !PG_PORT! -d fertutor -c "SELECT COUNT(*) FROM users;" >nul 2>&1
+if !errorlevel! equ 0 (
+    call :log_info "  数据库验证通过"
+) else (
+    call :log_warn "  数据库验证失败，请检查日志"
+)
 
 call :log_info "========================================================"
 call :log_info "  本地安装完成  %date% %time%"

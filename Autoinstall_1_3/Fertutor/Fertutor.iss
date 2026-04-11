@@ -258,7 +258,7 @@ begin
     begin
       LastLine := ReadLastLine(StatusFile);
 
-      // ── 追加新行到 Memo ──────────────────────────────────
+      // ── 追加新行到 Memo，同时检测完成/错误信号 ──────────
       if LoadStringsFromFile(StatusFile, AllLines) then
       begin
         if GetArrayLength(AllLines) > LastLineIdx then
@@ -275,6 +275,16 @@ begin
                 MsgTxt := LineText;
               if MsgTxt <> '' then
                 LogMemo.Lines.Add(MsgTxt);
+              // 完成信号检测（在每一行上检测）
+              if (Pos('本地安装完成', LineText) > 0) or
+                 (Pos('Docker 安装完成', LineText) > 0) then
+                LastLine := LineText;
+              // 重启信号检测
+              if Pos('[REBOOT]', LineText) > 0 then
+                LastLine := LineText;
+              // 致命错误检测
+              if Pos('[FATAL]', LineText) > 0 then
+                LastLine := LineText;
             end;
           end;
           LastLineIdx := GetArrayLength(AllLines);
@@ -318,6 +328,20 @@ begin
         LblStatus.Caption    := '配置完成！';
         LblDetail.Caption    := '服务已启动，点击"下一步"完成安装。';
         PumpMessages;
+        Break;
+      end;
+
+      // ── 重启信号（Docker 安装后需要重启）────────────────
+      if Pos('[REBOOT]', LastLine) > 0 then
+      begin
+        ProgressBar.Position := 100;
+        LblStatus.Caption    := '需要重启系统';
+        LblDetail.Caption    := 'Docker Desktop 安装完成，需要重启后继续安装 Fertutor。';
+        PumpMessages;
+        MsgBox('Docker Desktop 安装完成！' + Chr(13) + Chr(10) + Chr(13) + Chr(10) +
+               '系统需要重启才能生效。' + Chr(13) + Chr(10) +
+               '重启后请重新运行 Fertutor 安装程序完成安装。',
+               mbInformation, MB_OK);
         Break;
       end;
 
